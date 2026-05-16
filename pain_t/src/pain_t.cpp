@@ -1,14 +1,14 @@
-#include "engine2D.h"
+#include "engine_2d.h"
 #include <iostream>
 
-class pain_t : public Engine2D {
+class pain_t : public engine_2d {
 private:
-    Color background_color = Color(0.1f, 0.1f, 0.15f);
-    Color brush_color = Color(1.0f, 0.0f, 0.0f);
+    color background_color = color(0.1f, 0.1f, 0.15f);
+    color brush_color = color(1.0f, 0.0f, 0.0f);
     bool is_drawing = false;
 
 public:
-    pain_t(): Engine2D(1024, 600, "pain_t - A painful paint") {}
+    pain_t(): engine_2d(1024, 600, "pain_t - A painful paint") {}
 
     void setup() override {
         clear(background_color);
@@ -17,30 +17,30 @@ public:
 
     // EVENTS
 
-    void onkeyDown(int key) override {
+    void on_key_down(int key) override {
         if (key == GLFW_KEY_SPACE) {
             clear(background_color);
         }
     }
 
-    void onMouseButtonDown(int button, double x, double y) override {
+    void on_mouse_button_down(int button, double x, double y) override {
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             is_drawing = true;
-            putPixel(x, y, brush_color);
+            put_pixel(x, y, brush_color);
         }
     }
 
-    void onMouseButtonUp(int button, double x, double y) override {
+    void on_mouse_button_up(int button, double x, double y) override {
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             is_drawing = false;
         }
     }
 
-    void onMouseMove(double x, double y) override {
+    void on_mouse_move(double x, double y) override {
         if (is_drawing) {
             int ix = static_cast<int>(x);
             int iy = static_cast<int>(y);
-            putPixel(ix, iy, brush_color);
+            put_pixel(ix, iy, brush_color);
         }
     }
 
@@ -50,7 +50,7 @@ public:
         
     }
 
-    void drawUI() override {
+    void draw_ui() override {
         ImGui::Begin("Tools & Properties");
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Separator();
