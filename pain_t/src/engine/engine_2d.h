@@ -8,16 +8,10 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "color.h"
+#include "i_canvas.h"
 
-struct color 
-{
-	float r, g, b;
-	color() : r(0), g(0), b(0) {};
-	color(float r, float g, float b) : r(r), g(g), b(b) {};
-};
-
-class engine_2d
-{
+class engine_2d : public i_canvas{
 private: 
 	GLFWwindow* window;
 	std::string title;
@@ -34,11 +28,10 @@ private:
 	static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
 protected:
 	int width, height;
-	void put_pixel(int x, int y, const color& c);
-	void clear(const color& c);
 	glm::vec2 get_mouse_position();
 	bool is_key_pressed(int key) const;
 	bool is_mouse_button_pressed(int button) const;
+
 public:
 	engine_2d(int width, int height, const std::string& title);
 	~engine_2d();
@@ -52,6 +45,11 @@ public:
 	virtual void setup() {};
 	virtual void update(float deltaTime) {};
 	virtual void draw_ui() {};
+
+	void put_pixel(int x, int y, const color& c) override;
+	void clear(const color& c) override;
+	int get_width() const override { return width; }
+	int get_height() const override { return height; }
 private:
 	const char* vertex_shader_source = R"(
 		#version 330 core
