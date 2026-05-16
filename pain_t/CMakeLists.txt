@@ -1,15 +1,15 @@
-# CMakeList.txt : CMake project for proyecto#1, include source and define
-# project specific logic here.
-#
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
+    "src/*.cpp"
+    "src/*.h"
+)
 
-# Add source to this project's executable.
-add_executable (pain_t "src/pain_t.cpp" "src/pain_t.h" "src/engine_2d.h" "src/engine_2d.cpp")
+add_executable(pain_t ${SOURCE_FILES})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET pain_t PROPERTY CXX_STANDARD 20)
 endif()
 
-target_include_directories(pain_t PRIVATE include)
+target_include_directories(pain_t PRIVATE include src)
 
 target_link_libraries(pain_t PRIVATE 
     glfw  
