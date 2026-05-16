@@ -30,16 +30,6 @@ classDiagram
         + has_fill() bool
         + get_type_tag() string*
     }
-    note for figure "contains_point contract:
- - No fill: true if point is on border within a pixel tolerance
- - Has fill: true if point is inside filled area OR on border
-has_fill() default returns true. line overrides to return false.
-  Used by draw_ui() to show/hide the fill color picker.
-  Used by contains_point() implementations to choose hit-test strategy.
-get_center() is derived (centroid of control points), never stored.
-get_type_tag() returns a fixed string per subclass
-  (e.g. 'line', 'rectangle') used by scene_serializer
-  to write the type into the .p_t file."
 
     class control_point {
         - position: point
@@ -47,9 +37,6 @@ get_type_tag() returns a fixed string per subclass
         + set_position(p: point)
         + contains_point(x: double, y: double, tolerance: double) bool
     }
-    note for control_point "contains_point used for drag hit-detection.
-Each control_point is individually selectable
-to deform the parent figure."
 
     class line {
         + draw(canvas: i_canvas)
@@ -57,9 +44,6 @@ to deform the parent figure."
         + get_bounding_box() bounding_box
         + has_fill() bool
     }
-    note for line "has_fill() returns false — line is border only, never filled.
-contains_point: true if distance from point
-to segment is within a pixel tolerance."
 
     class triangle {
         + draw(canvas: i_canvas)
@@ -72,25 +56,18 @@ to segment is within a pixel tolerance."
         + contains_point(x: double, y: double) bool
         + get_bounding_box() bounding_box
     }
-    note for rectangle "Control points are the 4 corners.
-Dragging one corner deforms the rectangle.
-Ctrl held during creation forces a square."
 
     class ellipse {
         + draw(canvas: i_canvas)
         + contains_point(x: double, y: double) bool
         + get_bounding_box() bounding_box
     }
-    note for ellipse "3 control points: center, x-radius handle, y-radius handle.
-Ctrl held during creation forces rx == ry (circle)."
 
     class bezier_curve {
         + draw(canvas: i_canvas)
         + contains_point(x: double, y: double) bool
         + get_bounding_box() bounding_box
     }
-    note for bezier_curve "Stub: to be expanded once Bezier theory is covered.
-degree = n_control_points - 1."
 
     %% ----------------
     %% RELATIONSHIPS
@@ -109,3 +86,47 @@ degree = n_control_points - 1."
 
     figure ..> i_canvas : draws to
 ```
+
+## Notes
+
+### `figure`
+
+contains_point contract:
+ - No fill: true if point is on border within a pixel tolerance
+ - Has fill: true if point is inside filled area OR on border
+has_fill() default returns true. line overrides to return false.
+  Used by draw_ui() to show/hide the fill color picker.
+  Used by contains_point() implementations to choose hit-test strategy.
+get_center() is derived (centroid of control points), never stored.
+get_type_tag() returns a fixed string per subclass
+  (e.g. 'line', 'rectangle') used by scene_serializer
+  to write the type into the .p_t file.
+
+### `control_point`
+
+contains_point used for drag hit-detection.
+Each control_point is individually selectable
+to deform the parent figure.
+
+### `line`
+
+has_fill() returns false — line is border only, never filled.
+contains_point: true if distance from point
+to segment is within a pixel tolerance.
+
+### `rectangle`
+
+Control points are the 4 corners.
+Dragging one corner deforms the rectangle.
+Ctrl held during creation forces a square.
+
+### `ellipse`
+
+3 control points: center, x-radius handle, y-radius handle.
+Ctrl held during creation forces rx == ry (circle).
+
+### `bezier_curve`
+
+Stub: to be expanded once Bezier theory is covered.
+degree = n_control_points - 1.
+

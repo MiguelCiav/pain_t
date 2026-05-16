@@ -33,14 +33,20 @@ classDiagram
         # is_mouse_button_pressed(button: int) bool
         # get_mouse_position() point
     }
-    note for engine_2d "Subclass this to build an application.
+
+    i_canvas <|.. engine_2d
+```
+
+## Notes
+
+### `engine_2d`
+
+Subclass this to build an application.
 The pixel buffer is a flat vector uploaded
 to a full-screen OpenGL texture each frame.
 Do NOT call put_pixel from draw_ui() — ImGui runs
 after the texture is uploaded; pixel writes there are lost.
 put_pixel and clear are shown as public because i_canvas
 requires them at that visibility. In the existing code they
-are protected and will be promoted when i_canvas is introduced."
+are protected and will be promoted when i_canvas is introduced.
 
-    i_canvas <|.. engine_2d
-```
