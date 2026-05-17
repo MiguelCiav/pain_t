@@ -11,8 +11,8 @@ graph LR
 
     figures["📦 figures
     ─────────────
-    figure
-    control_point
+    figure · point
+    bounding_box · control_point
     line · triangle
     rectangle · ellipse
     bezier_curve"]
@@ -20,7 +20,7 @@ graph LR
     scene_pkg["📦 scene
     ─────────────
     scene · pain_t
-    bounding_box · quad_tree
+    quad_tree
     scene_serializer"]
 
     tools["📦 tools

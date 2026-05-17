@@ -12,15 +12,7 @@ classDiagram
     class i_tool { <<interface>> }
     class i_canvas { <<interface>> }
     class engine_2d
-
-    class bounding_box {
-        + x: float
-        + y: float
-        + width: float
-        + height: float
-        + contains(x: double, y: double) bool
-        + intersects(other: bounding_box) bool
-    }
+    class bounding_box { <<stub>> }
 
     class quad_tree {
         - bounds: bounding_box
@@ -97,12 +89,6 @@ classDiagram
 ```
 
 ## Notes
-
-### `bounding_box`
-
-contains() and intersects() used
-internally by quad_tree for subdivision
-and range query logic.
 
 ### `quad_tree`
 

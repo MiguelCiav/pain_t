@@ -31,6 +31,20 @@ classDiagram
         + get_type_tag() string*
     }
 
+    class point {
+        + x: double
+        + y: double
+    }
+
+    class bounding_box {
+        + x: float
+        + y: float
+        + width: float
+        + height: float
+        + contains(x: double, y: double) bool
+        + intersects(other: bounding_box) bool
+    }
+
     class control_point {
         - position: point
         + get_position() point
@@ -101,6 +115,18 @@ get_center() is derived (centroid of control points), never stored.
 get_type_tag() returns a fixed string per subclass
   (e.g. 'line', 'rectangle') used by scene_serializer
   to write the type into the .p_t file.
+
+### `point`
+
+A simple geometric coordinate structure to avoid
+polluting `figures` with external math libraries.
+
+### `bounding_box`
+
+contains() and intersects() used
+internally by quad_tree for subdivision
+and range query logic. Every figure computes
+its own bounds.
 
 ### `control_point`
 
