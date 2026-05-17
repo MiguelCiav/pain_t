@@ -28,6 +28,7 @@ public:
     virtual color get_fill_color() const { return fill_color; }
     virtual bool is_selected() const { return selected; }
     virtual bool is_filled() const { return filled; }
+    virtual bool can_fill() const { return true; }
     virtual point get_center() const {
         if (control_points.empty()) {
             throw std::logic_error("Cannot get center of an empty figure");
