@@ -8,7 +8,9 @@
 
 class dummy_figure : public figure {
 public:
-    void draw(engine_2d*) override {}
+    void draw() override {}
+    void draw_outline() override {}
+    void draw_fill() override {}
     bool contains_point(double x, double y) const override { return false; }
     bounding_box get_bounding_box() const override { return {}; }
     std::string get_type_tag() const override { return "dummy"; }

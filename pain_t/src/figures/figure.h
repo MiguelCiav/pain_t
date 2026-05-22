@@ -16,11 +16,15 @@ protected:
     color fill_color;
     bool selected = false;
     bool filled = false;
+    engine_2d* engine = nullptr;
     std::vector<control_point> control_points;
 
 public:
     // CONSTRUCTORS AND DESTRUCTOR
     virtual ~figure() = default;
+    figure() = default;
+    figure(color border_color, color fill_color, bool filled, engine_2d* engine = nullptr): 
+        border_color(border_color), fill_color(fill_color), filled(filled), engine(engine) {}
 
     // GETTERS
     virtual int get_z_index() const { return z_index; }
@@ -53,6 +57,7 @@ public:
     }
 
     // SETTERS
+    virtual void set_engine(engine_2d* engine) { this->engine = engine; }
     virtual void set_z_index(int z_index) { this->z_index = z_index; }
     virtual void set_border_color(color border_color) { this->border_color = border_color; }
     virtual void set_fill_color(color fill_color) { this->fill_color = fill_color; }
@@ -69,7 +74,17 @@ public:
             cp.set_y(cp.get_y() + shift.y);
         }
     }
-    virtual void draw(engine_2d*) = 0;
+    virtual void draw() {
+        if (engine == nullptr) {
+            throw std::logic_error("Cannot draw a figure without an engine");
+        }
+        draw_outline();
+        if (filled) {
+            draw_fill();
+        }
+    }
+    virtual void draw_outline() = 0;
+    virtual void draw_fill() = 0;
     virtual bool contains_point(double x, double y) const = 0;
     virtual bounding_box get_bounding_box() const = 0;
     virtual std::string get_type_tag() const = 0;
