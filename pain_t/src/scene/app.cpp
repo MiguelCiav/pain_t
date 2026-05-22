@@ -1,14 +1,14 @@
 #include "../engine/engine_2d.h"
 #include <iostream>
 
-class pain_t : public engine_2d {
+class app : public engine_2d {
 private:
     color background_color = color(0.1f, 0.1f, 0.15f);
     color brush_color = color(1.0f, 0.0f, 0.0f);
     bool is_drawing = false;
 
 public:
-    pain_t(): engine_2d(1024, 600, "pain_t - A painful paint") {}
+    app(): engine_2d(1024, 600, "pain_t") {}
 
     void setup() override {
         clear(background_color);
@@ -69,7 +69,7 @@ public:
 };
 
 int main() {
-    pain_t app;
-    app.run();
+    app engine;
+    engine.run();
     return 0;
 }

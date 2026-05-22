@@ -2,12 +2,13 @@
 #include "../pain_t/src/figures/point.h"
 #include "../pain_t/src/figures/control_point.h"
 #include "../pain_t/src/figures/figure.h"
+#include "../pain_t/src/engine/engine_2d.h"
 
 // DUMMY DATA
 
 class dummy_figure : public figure {
 public:
-    void draw(i_canvas*) override {}
+    void draw(engine_2d*) override {}
     bool contains_point(double x, double y) const override { return false; }
     bounding_box get_bounding_box() const override { return {}; }
     std::string get_type_tag() const override { return "dummy"; }

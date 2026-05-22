@@ -4,7 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include "../engine/color.h"
-#include "../engine/i_canvas.h"
+#include "../engine/engine_2d.h"
 #include "control_point.h"
 #include "bounding_box.h"
 #include "point.h"
@@ -69,7 +69,7 @@ public:
             cp.set_y(cp.get_y() + shift.y);
         }
     }
-    virtual void draw(i_canvas*) = 0;
+    virtual void draw(engine_2d*) = 0;
     virtual bool contains_point(double x, double y) const = 0;
     virtual bounding_box get_bounding_box() const = 0;
     virtual std::string get_type_tag() const = 0;

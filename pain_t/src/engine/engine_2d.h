@@ -9,9 +9,8 @@
 #include <string>
 #include <iostream>
 #include "color.h"
-#include "i_canvas.h"
 
-class engine_2d : public i_canvas{
+class engine_2d {
 private: 
 	GLFWwindow* window;
 	std::string title;
@@ -31,6 +30,7 @@ protected:
 	glm::vec2 get_mouse_position();
 	bool is_key_pressed(int key) const;
 	bool is_mouse_button_pressed(int button) const;
+	void clear(const color& c);
 
 public:
 	engine_2d(int width, int height, const std::string& title);
@@ -46,10 +46,9 @@ public:
 	virtual void update(float deltaTime) {};
 	virtual void draw_ui() {};
 
-	void put_pixel(int x, int y, const color& c) override;
-	void clear(const color& c) override;
-	int get_width() const override { return width; }
-	int get_height() const override { return height; }
+	void put_pixel(int x, int y, const color& c);
+	int get_width() const { return width; }
+	int get_height() const { return height; }
 private:
 	const char* vertex_shader_source = R"(
 		#version 330 core
