@@ -1,4 +1,5 @@
 #include "../engine/engine_2d.h"
+#include "../figures/line.h"
 #include <iostream>
 
 class app : public engine_2d {
@@ -11,6 +12,10 @@ public:
     void setup() override {
         clear(background_color);
         std::cout << "pain_t engine initialized successfully." << std::endl;
+        
+        // Draw a test line during initialization
+        line l(point(100, 100), point(700, 500), color(0.1f, 0.1f, 0.1f), this);
+        l.draw_outline();
     }
 
     // EVENTS
