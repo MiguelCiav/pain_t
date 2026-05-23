@@ -33,7 +33,7 @@ void line_tool::on_key_down(int key) {}
 void line_tool::draw_preview() {
     if (is_drawing) {
         line temp_line(starting_point, ending_point, color(0.6f, 0.6f, 0.6f), engine);
-        temp_line.draw_outline();
+        temp_line.draw_border();
     }
 }
 

@@ -17,7 +17,7 @@ public:
         : figure(border_color, fill_color, filled, engine) {}
 
     void draw() override {}
-    void draw_outline() override {}
+    void draw_border() override {}
     void draw_fill() override {}
     bool contains_point(double x, double y) const override { return false; }
     bounding_box get_bounding_box() override { return {}; }
@@ -34,10 +34,10 @@ public:
     draw_test_figure(color border_color, color fill_color, bool filled, engine_2d* engine = nullptr)
         : figure(border_color, fill_color, filled, engine) {}
     
-    bool draw_outline_called = false;
+    bool draw_border_called = false;
     bool draw_fill_called = false;
     
-    void draw_outline() override { draw_outline_called = true; }
+    void draw_border() override { draw_border_called = true; }
     void draw_fill() override { draw_fill_called = true; }
     bool contains_point(double x, double y) const override { return false; }
     bounding_box get_bounding_box() override { return {}; }
@@ -264,15 +264,15 @@ TEST_CASE("line primitive coverage", "[figures][line]") {
         REQUIRE_THROWS_AS(l.draw_fill(), std::logic_error);
     }
     
-    SECTION("draw_outline exceptions") {
+    SECTION("draw_border exceptions") {
         line l(p1, p2, line_color, nullptr);
         
-        // draw() throws logic_error before calling draw_outline if engine is nullptr
+        // draw() throws logic_error before calling draw_border if engine is nullptr
         REQUIRE_THROWS_AS(l.draw(), std::logic_error);
         
-        // Verify draw_outline throws if control points are not exactly 2
+        // Verify draw_border throws if control points are not exactly 2
         l.get_control_points().clear();
-        REQUIRE_THROWS_AS(l.draw_outline(), std::logic_error);
+        REQUIRE_THROWS_AS(l.draw_border(), std::logic_error);
     }
     
     SECTION("contains_point always returns false currently") {

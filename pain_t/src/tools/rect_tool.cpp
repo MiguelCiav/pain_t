@@ -48,7 +48,7 @@ void rect_tool::draw_preview() {
         };
         
         rectangle temp_rect(rect_points, color(0.6f, 0.6f, 0.6f), color(0, 0, 0), false, engine);
-        temp_rect.draw_outline();
+        temp_rect.draw_border();
     }
 }
 

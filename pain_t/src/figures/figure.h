@@ -57,7 +57,7 @@ public:
   // LOGIC
   virtual void move(point shift);
   virtual void draw();
-  virtual void draw_outline() = 0;
+  virtual void draw_border() = 0;
   virtual void draw_fill() = 0;
   virtual bool contains_point(double x, double y) const = 0;
   virtual std::string get_type_tag() const = 0;

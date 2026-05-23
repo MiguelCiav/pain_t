@@ -39,7 +39,7 @@ void figure::draw() {
   if (engine == nullptr) {
     throw std::logic_error("Cannot draw a figure without an engine");
   }
-  draw_outline();
+  draw_border();
   if (filled) {
     draw_fill();
   }

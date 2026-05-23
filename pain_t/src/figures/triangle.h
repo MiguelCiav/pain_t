@@ -7,14 +7,17 @@
 
 class engine_2d;
 
-class line : public figure {
+class triangle : public figure {
 public:
   // CONSTRUCTORS
-  line() = default;
-  line(point p1, point p2, color border_color, engine_2d *engine = nullptr);
+  triangle() = default;
+  triangle(color border_color, color fill_color, bool filled,
+           engine_2d *engine);
+  triangle(std::vector<point> points, color border_color, color fill_color,
+           bool filled, engine_2d *engine);
 
   // OVERRIDES
-  bool can_fill() const override;
+  bool can_fill() const override { return true; };
   void draw_fill() override;
   void draw_border() override;
   bool contains_point(double x, double y) const override;

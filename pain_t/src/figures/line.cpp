@@ -13,7 +13,7 @@ bool line::can_fill() const { return false; }
 
 void line::draw_fill() { throw std::logic_error("Cannot fill a line"); }
 
-void line::draw_outline() {
+void line::draw_border() {
   if (control_points.size() != 2) {
     throw std::logic_error("Line must have 2 control points");
   }

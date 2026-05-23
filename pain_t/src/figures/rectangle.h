@@ -19,7 +19,7 @@ public:
   // OVERRIDES
   bool can_fill() const override { return true; };
   void draw_fill() override;
-  void draw_outline() override;
+  void draw_border() override;
   bool contains_point(double x, double y) const override;
   std::string get_type_tag() const override;
 };

@@ -16,7 +16,7 @@ rectangle::rectangle(std::vector<point> points, color border_color,
     control_points.push_back(control_point(p));
 };
 
-void rectangle::draw_outline() {
+void rectangle::draw_border() {
   rasterizer::draw_line(engine, control_points[0].get_position(),
                         control_points[1].get_position(), border_color);
   rasterizer::draw_line(engine, control_points[1].get_position(),
