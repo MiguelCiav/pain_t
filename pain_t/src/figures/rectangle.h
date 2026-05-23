@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../engine/color.h"
-#include "bounding_box.h"
 #include "figure.h"
 #include "point.h"
 #include <string>
@@ -22,6 +21,5 @@ public:
   void draw_fill() override;
   void draw_outline() override;
   bool contains_point(double x, double y) const override;
-  bounding_box get_bounding_box() const override;
   std::string get_type_tag() const override;
 };

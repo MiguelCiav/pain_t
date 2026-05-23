@@ -11,6 +11,8 @@ private:
     color background_color = color(0.85f, 0.85f, 0.85f);
     std::vector<figure*> figures;
     i_tool* active_tool = nullptr;
+    i_tool* l_tool = nullptr;
+    i_tool* r_tool = nullptr;
 
 public:
     app();

@@ -7,6 +7,7 @@ if (POLICY CMP0141)
 endif()
 
 project ("pain_t")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(OpenGL REQUIRED)
 include(FetchContent)
 

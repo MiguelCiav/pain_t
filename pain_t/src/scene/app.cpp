@@ -3,12 +3,14 @@
 #include "../figures/line.h"
 #include "../figures/rectangle.h"
 #include "../tools/line_tool.h"
+#include "../tools/rect_tool.h"
 #include <iostream>
 
 app::app() : engine_2d(800, 600, "pain_t") {}
 
 app::~app() {
-  delete active_tool;
+  delete l_tool;
+  delete r_tool;
   for (figure *fig : figures) {
     delete fig;
   }
@@ -18,17 +20,9 @@ void app::setup() {
   clear(background_color);
   std::cout << "pain_t engine initialized successfully." << std::endl;
   
-  // Add an example rectangle
-  std::vector<point> rect_points = {
-    point(200, 200), // Top-left
-    point(600, 200), // Top-right
-    point(600, 400), // Bottom-right
-    point(200, 400)  // Bottom-left
-  };
-  figure* sample_rect = new rectangle(rect_points, color(0.8f, 0.1f, 0.1f), color(0.2f, 0.5f, 0.9f), true, this);
-  figures.push_back(sample_rect);
-
-  active_tool = new line_tool(this, figures);
+  l_tool = new line_tool(this, figures);
+  r_tool = new rect_tool(this, figures);
+  active_tool = l_tool;
 }
 
 void app::on_key_down(int key) {
@@ -63,7 +57,23 @@ void app::update(float deltaTime) {
   }
 }
 
-void app::draw_ui() {}
+void app::draw_ui() {
+  ImGui::Begin("Tools");
+  
+  std::string current = active_tool ? active_tool->get_name() : "None";
+  ImGui::Text("Active Tool: %s", current.c_str());
+  ImGui::Separator();
+  
+  if (ImGui::Button("Line Tool")) {
+      active_tool = l_tool;
+  }
+  
+  if (ImGui::Button("Rectangle Tool")) {
+      active_tool = r_tool;
+  }
+  
+  ImGui::End();
+}
 
 int main() {
   app engine;

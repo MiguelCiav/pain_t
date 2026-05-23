@@ -20,7 +20,7 @@ public:
     void draw_outline() override {}
     void draw_fill() override {}
     bool contains_point(double x, double y) const override { return false; }
-    bounding_box get_bounding_box() const override { return {}; }
+    bounding_box get_bounding_box() override { return {}; }
     std::string get_type_tag() const override { return "dummy"; }
     void add_test_control_point(double x, double y) {
         control_points.push_back(control_point(point{x, y}));
@@ -40,7 +40,7 @@ public:
     void draw_outline() override { draw_outline_called = true; }
     void draw_fill() override { draw_fill_called = true; }
     bool contains_point(double x, double y) const override { return false; }
-    bounding_box get_bounding_box() const override { return {}; }
+    bounding_box get_bounding_box() override { return {}; }
     std::string get_type_tag() const override { return "draw_test"; }
 };
 
@@ -94,12 +94,19 @@ TEST_CASE("point storing and modifying", "[figures]") {
 TEST_CASE("bounding_box struct coverage", "[bounding_box]") {
     point min_pt(1.0, 2.0);
     point max_pt(3.0, 4.0);
-    bounding_box box{min_pt, max_pt};
+    std::vector<point> pts = {min_pt, max_pt};
+    bounding_box box{pts};
     
-    REQUIRE(box.min_point.x == 1.0);
-    REQUIRE(box.min_point.y == 2.0);
-    REQUIRE(box.max_point.x == 3.0);
-    REQUIRE(box.max_point.y == 4.0);
+    auto box_pts = box.get_bounding_box();
+    REQUIRE(box_pts.size() == 4);
+    REQUIRE(box_pts[0].x == 1.0);
+    REQUIRE(box_pts[0].y == 2.0);
+    REQUIRE(box_pts[1].x == 3.0);
+    REQUIRE(box_pts[1].y == 2.0);
+    REQUIRE(box_pts[2].x == 3.0);
+    REQUIRE(box_pts[2].y == 4.0);
+    REQUIRE(box_pts[3].x == 1.0);
+    REQUIRE(box_pts[3].y == 4.0);
 }
 
 TEST_CASE("control_point behavioral checks", "[figures]") {
@@ -277,10 +284,16 @@ TEST_CASE("line primitive coverage", "[figures][line]") {
     SECTION("get_bounding_box behavior") {
         line l(p1, p2, line_color, nullptr);
         bounding_box box = l.get_bounding_box();
-        REQUIRE(box.min_point.x == 10.0);
-        REQUIRE(box.min_point.y == 20.0);
-        REQUIRE(box.max_point.x == 100.0);
-        REQUIRE(box.max_point.y == 200.0);
+        auto box_pts = box.get_bounding_box();
+        REQUIRE(box_pts.size() == 4);
+        REQUIRE(box_pts[0].x == 10.0);
+        REQUIRE(box_pts[0].y == 20.0);
+        REQUIRE(box_pts[1].x == 100.0);
+        REQUIRE(box_pts[1].y == 20.0);
+        REQUIRE(box_pts[2].x == 100.0);
+        REQUIRE(box_pts[2].y == 200.0);
+        REQUIRE(box_pts[3].x == 10.0);
+        REQUIRE(box_pts[3].y == 200.0);
         
         // If control points are not 2, should throw
         l.get_control_points().clear();

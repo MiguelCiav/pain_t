@@ -48,12 +48,4 @@ bool rectangle::contains_point(double x, double y) const {
   return x >= line_x1 && x <= line_x2 && y >= line_y1 && y <= line_y2;
 }
 
-bounding_box rectangle::get_bounding_box() const {
-  double line_x1 = control_points[0].get_x();
-  double line_x2 = control_points[1].get_x();
-  double line_y1 = control_points[0].get_y();
-  double line_y2 = control_points[2].get_y();
-  return bounding_box{point{line_x1, line_y1}, point{line_x2, line_y2}};
-}
-
 std::string rectangle::get_type_tag() const { return "rectangle"; }
