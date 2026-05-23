@@ -6,7 +6,7 @@ list(REMOVE_ITEM PROJECT_SOURCES "${CMAKE_SOURCE_DIR}/pain_t/src/main.cpp")
 list(REMOVE_ITEM PROJECT_SOURCES "${CMAKE_SOURCE_DIR}/pain_t/src/scene/pain_t.cpp") 
 list(REMOVE_ITEM PROJECT_SOURCES "${CMAKE_SOURCE_DIR}/pain_t/src/scene/app.cpp") 
 
-add_executable(run_tests test_figures.cpp ${PROJECT_SOURCES})
+add_executable(run_tests test_figures.cpp test_tools.cpp ${PROJECT_SOURCES})
 
 target_link_libraries(run_tests PRIVATE 
     Catch2::Catch2WithMain

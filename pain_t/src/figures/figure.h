@@ -2,12 +2,12 @@
 
 #include <string>
 #include <vector>
-#include <stdexcept>
 #include "../engine/color.h"
-#include "../engine/engine_2d.h"
 #include "control_point.h"
 #include "bounding_box.h"
 #include "point.h"
+
+class engine_2d;
 
 class figure {
 protected:
@@ -23,8 +23,7 @@ public:
     // CONSTRUCTORS AND DESTRUCTOR
     virtual ~figure() = default;
     figure() = default;
-    figure(color border_color, color fill_color, bool filled, engine_2d* engine = nullptr): 
-        border_color(border_color), fill_color(fill_color), filled(filled), engine(engine) {}
+    figure(color border_color, color fill_color, bool filled, engine_2d* engine = nullptr);
 
     // GETTERS
     virtual int get_z_index() const { return z_index; }
@@ -33,22 +32,7 @@ public:
     virtual bool is_selected() const { return selected; }
     virtual bool is_filled() const { return filled; }
     virtual bool can_fill() const { return true; }
-    virtual point get_center() const {
-        if (control_points.empty()) {
-            throw std::logic_error("Cannot get center of an empty figure");
-        }
-        if (control_points.size() == 1) {
-            return control_points[0].get_position();
-        }
-        point center = {0.0, 0.0};
-        for (auto& cp : control_points) {
-            center.x += cp.get_x();
-            center.y += cp.get_y();
-        }
-        center.x /= control_points.size();
-        center.y /= control_points.size();
-        return center;
-    }
+    virtual point get_center() const;
     virtual std::vector<control_point>& get_control_points() {
         return control_points;
     }
@@ -65,24 +49,8 @@ public:
     virtual void unselect() { this->selected = false; }
 
     // LOGIC
-    virtual void move(point shift) {
-        if (control_points.empty()) {
-            throw std::logic_error("Cannot move an empty figure");
-        }
-        for (auto& cp : control_points) {
-            cp.set_x(cp.get_x() + shift.x);
-            cp.set_y(cp.get_y() + shift.y);
-        }
-    }
-    virtual void draw() {
-        if (engine == nullptr) {
-            throw std::logic_error("Cannot draw a figure without an engine");
-        }
-        draw_outline();
-        if (filled) {
-            draw_fill();
-        }
-    }
+    virtual void move(point shift);
+    virtual void draw();
     virtual void draw_outline() = 0;
     virtual void draw_fill() = 0;
     virtual bool contains_point(double x, double y) const = 0;
