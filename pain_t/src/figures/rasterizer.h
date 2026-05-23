@@ -5,7 +5,7 @@
 #include "point.h"
 
 namespace rasterizer {
-    void draw_line_low(engine_2d* engine, point p1, point p2, color c) {
+    inline void draw_line_low(engine_2d* engine, point p1, point p2, color c) {
         int dx = p2.x - p1.x;
         int dy = p2.y - p1.y;
         int direction = (dy < 0 ? -1 : 1);
@@ -22,7 +22,7 @@ namespace rasterizer {
             }
         }
     }
-    void draw_line_high(engine_2d* engine, point p1, point p2, color c) {
+    inline void draw_line_high(engine_2d* engine, point p1, point p2, color c) {
         int dx = p2.x - p1.x;
         int dy = p2.y - p1.y;
         int direction = (dx < 0 ? -1 : 1);
@@ -39,7 +39,7 @@ namespace rasterizer {
             }
         }
     }
-    void draw_line(engine_2d* engine, point p1, point p2, color c) {
+    inline void draw_line(engine_2d* engine, point p1, point p2, color c) {
         if (std::abs(p2.y - p1.y) < std::abs(p2.x - p1.x)) {
             if (p1.x > p2.x) draw_line_low(engine, p2, p1, c);
             else draw_line_low(engine, p1, p2, c);

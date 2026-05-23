@@ -6,7 +6,6 @@
 #include "../engine/color.h"
 #include <string>
 
-// Forward declaration
 class engine_2d;
 
 class line : public figure {
