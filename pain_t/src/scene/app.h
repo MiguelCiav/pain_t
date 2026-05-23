@@ -15,6 +15,7 @@ private:
   i_tool *active_tool = nullptr;
   i_tool *l_tool = nullptr;
   i_tool *r_tool = nullptr;
+  i_tool *t_tool = nullptr;
 
 public:
   app();

@@ -5,11 +5,11 @@
 
 triangle::triangle(color border_color, color fill_color, bool filled,
                    engine_2d *engine)
-    : figure(border_color, color(0, 0, 0), filled, engine) {};
+    : figure(border_color, fill_color, filled, engine) {};
 
 triangle::triangle(std::vector<point> points, color border_color,
                    color fill_color, bool filled, engine_2d *engine)
-    : figure(border_color, color(0, 0, 0), filled, engine) {
+    : figure(border_color, fill_color, filled, engine) {
   if (points.size() != 3)
     throw std::logic_error("A triangle must have 3 points");
   for (auto p : points)

@@ -4,6 +4,7 @@
 #include "../figures/rectangle.h"
 #include "../tools/line_tool.h"
 #include "../tools/rect_tool.h"
+#include "../tools/triangle_tool.h"
 #include <iostream>
 
 app::app() : engine_2d(800, 600, "pain_t") {}
@@ -11,6 +12,7 @@ app::app() : engine_2d(800, 600, "pain_t") {}
 app::~app() {
   delete l_tool;
   delete r_tool;
+  delete t_tool;
   for (figure *fig : figures) {
     delete fig;
   }
@@ -22,6 +24,7 @@ void app::setup() {
   
   l_tool = new line_tool(this, figures);
   r_tool = new rect_tool(this, figures);
+  t_tool = new triangle_tool(this, figures);
   active_tool = l_tool;
 }
 
@@ -70,6 +73,10 @@ void app::draw_ui() {
   
   if (ImGui::Button("Rectangle Tool")) {
       active_tool = r_tool;
+  }
+  
+  if (ImGui::Button("Triangle Tool")) {
+      active_tool = t_tool;
   }
   
   ImGui::Separator();
