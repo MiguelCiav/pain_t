@@ -39,10 +39,10 @@ void figure::draw() {
   if (engine == nullptr) {
     throw std::logic_error("Cannot draw a figure without an engine");
   }
-  draw_border();
   if (filled) {
     draw_fill();
   }
+  draw_border();
 }
 
 bounding_box figure::get_bounding_box() {

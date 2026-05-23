@@ -12,7 +12,7 @@ inline void draw_line_low(engine_2d *engine, point p1, point p2, color c) {
   dy = std::abs(dy);
   int D = (2 * dy) - dx;
   int y = p1.y;
-  for (int x = p1.x; x < p2.x; x++) {
+  for (int x = p1.x; x <= p2.x; x++) {
     engine->put_pixel(x, y, c);
     if (D > 0) {
       y += direction;
@@ -29,7 +29,7 @@ inline void draw_line_high(engine_2d *engine, point p1, point p2, color c) {
   dx = std::abs(dx);
   int D = (2 * dx) - dy;
   int x = p1.x;
-  for (int y = p1.y; y < p2.y; y++) {
+  for (int y = p1.y; y <= p2.y; y++) {
     engine->put_pixel(x, y, c);
     if (D > 0) {
       x += direction;
@@ -54,7 +54,7 @@ inline void draw_line(engine_2d *engine, point p1, point p2, color c) {
 }
 inline void draw_horizontal_line(engine_2d *engine, int x1, int x2, int y,
                                  color c) {
-  for (int x = x1; x1 <= x2; x++) {
+  for (int x = x1; x <= x2; x++) {
     engine->put_pixel(x, y, c);
   }
 }

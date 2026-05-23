@@ -72,6 +72,10 @@ void app::draw_ui() {
       active_tool = r_tool;
   }
   
+  ImGui::Separator();
+  ImGui::ColorEdit3("Border Color", &border_color.r);
+  ImGui::ColorEdit3("Fill Color", &fill_color.r);
+
   ImGui::End();
 }
 
