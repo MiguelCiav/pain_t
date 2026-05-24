@@ -27,14 +27,14 @@ rectangle::rectangle(point p1, point p2, color border_color, color fill_color,
 };
 
 void rectangle::draw_border() {
-  rasterizer::draw_line(engine, control_points[0].get_position(),
-                        control_points[1].get_position(), border_color);
-  rasterizer::draw_line(engine, control_points[1].get_position(),
-                        control_points[2].get_position(), border_color);
-  rasterizer::draw_line(engine, control_points[2].get_position(),
-                        control_points[3].get_position(), border_color);
-  rasterizer::draw_line(engine, control_points[3].get_position(),
-                        control_points[0].get_position(), border_color);
+  rasterizer::line::draw(engine, control_points[0].get_position(),
+                         control_points[1].get_position(), border_color);
+  rasterizer::line::draw(engine, control_points[1].get_position(),
+                         control_points[2].get_position(), border_color);
+  rasterizer::line::draw(engine, control_points[2].get_position(),
+                         control_points[3].get_position(), border_color);
+  rasterizer::line::draw(engine, control_points[3].get_position(),
+                         control_points[0].get_position(), border_color);
 }
 
 void rectangle::draw_fill() {
@@ -48,8 +48,8 @@ void rectangle::draw_fill() {
   double line_y1 = points[0].y;
   double line_y2 = points[2].y;
   for (double y = line_y1; y < line_y2; y++) {
-    rasterizer::draw_line(engine, point{line_x1, y}, point{line_x2, y},
-                          fill_color);
+    rasterizer::line::draw(engine, point{line_x1, y}, point{line_x2, y},
+                           fill_color);
   }
 }
 

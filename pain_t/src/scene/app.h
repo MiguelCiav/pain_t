@@ -16,6 +16,7 @@ private:
   i_tool *l_tool = nullptr;
   i_tool *r_tool = nullptr;
   i_tool *t_tool = nullptr;
+  i_tool *e_tool = nullptr;
 
 public:
   app();
@@ -30,4 +31,7 @@ public:
   void draw_ui() override;
   color get_border_color() { return border_color; }
   color get_fill_color() { return fill_color; }
+  bool is_ctrl_pressed() const {
+    return is_key_pressed(GLFW_KEY_LEFT_CONTROL) || is_key_pressed(GLFW_KEY_RIGHT_CONTROL);
+  }
 };

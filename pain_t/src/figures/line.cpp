@@ -17,8 +17,8 @@ void line::draw_border() {
   if (control_points.size() != 2) {
     throw std::logic_error("Line must have 2 control points");
   }
-  rasterizer::draw_line(engine, control_points[0].get_position(),
-                        control_points[1].get_position(), border_color);
+  rasterizer::line::draw(engine, control_points[0].get_position(),
+                         control_points[1].get_position(), border_color);
 }
 
 bool line::contains_point(double x, double y) const { return false; }

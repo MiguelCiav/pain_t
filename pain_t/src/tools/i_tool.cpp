@@ -1,4 +1,3 @@
-#pragma once
 #include "i_tool.h"
 #include <stdexcept>
 

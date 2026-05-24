@@ -17,12 +17,12 @@ triangle::triangle(std::vector<point> points, color border_color,
 };
 
 void triangle::draw_border() {
-  rasterizer::draw_line(engine, control_points[0].get_position(),
-                        control_points[1].get_position(), border_color);
-  rasterizer::draw_line(engine, control_points[1].get_position(),
-                        control_points[2].get_position(), border_color);
-  rasterizer::draw_line(engine, control_points[2].get_position(),
-                        control_points[0].get_position(), border_color);
+  rasterizer::line::draw(engine, control_points[0].get_position(),
+                         control_points[1].get_position(), border_color);
+  rasterizer::line::draw(engine, control_points[1].get_position(),
+                         control_points[2].get_position(), border_color);
+  rasterizer::line::draw(engine, control_points[2].get_position(),
+                         control_points[0].get_position(), border_color);
 }
 
 void triangle::draw_fill() {
@@ -41,8 +41,8 @@ void triangle::draw_fill() {
   if (p2.y > p3.y)
     std::swap(p2, p3);
 
-  rasterizer::line_tracer_y line_a;
-  rasterizer::line_tracer_y line_b;
+  rasterizer::line::tracer_y line_a;
+  rasterizer::line::tracer_y line_b;
 
   line_a.init(p1, p3);
   line_b.init(p1, p2);
@@ -51,7 +51,7 @@ void triangle::draw_fill() {
     int x_left = std::min(line_a.x_min, line_b.x_min);
     int x_right = std::max(line_a.x_max, line_b.x_max);
 
-    rasterizer::draw_horizontal_line(engine, x_left, x_right, y, fill_color);
+    rasterizer::line::draw_horizontal(engine, x_left, x_right, y, fill_color);
 
     line_a.advance_to_next_y();
     line_b.advance_to_next_y();

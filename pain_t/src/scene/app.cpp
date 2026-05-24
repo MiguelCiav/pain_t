@@ -1,8 +1,8 @@
 #include "app.h"
 #include "../figures/figure.h"
 #include "../figures/line.h"
-#include "../figures/rasterizer.h"
 #include "../figures/rectangle.h"
+#include "../tools/ellipse_tool.h"
 #include "../tools/line_tool.h"
 #include "../tools/rect_tool.h"
 #include "../tools/triangle_tool.h"
@@ -14,6 +14,7 @@ app::~app() {
   delete l_tool;
   delete r_tool;
   delete t_tool;
+  delete e_tool;
   for (figure *fig : figures) {
     delete fig;
   }
@@ -26,6 +27,7 @@ void app::setup() {
   l_tool = new line_tool(this, figures, this);
   r_tool = new rect_tool(this, figures, this);
   t_tool = new triangle_tool(this, figures, this);
+  e_tool = new ellipse_tool(this, figures, this);
   active_tool = l_tool;
 }
 
@@ -56,9 +58,6 @@ void app::update(float deltaTime) {
     fig->draw();
   }
 
-  rasterizer::draw_circle(this, 200, 200, 50, color(0, 0, 0));
-  rasterizer::draw_ellipse(this, 400, 200, 80, 40, color(0, 0, 0));
-
   if (active_tool) {
     active_tool->draw_preview();
   }
@@ -83,10 +82,13 @@ void app::draw_ui() {
     active_tool = t_tool;
   }
 
+  if (ImGui::Button("Ellipse Tool")) {
+    active_tool = e_tool;
+  }
+
   ImGui::Separator();
   ImGui::ColorEdit3("Border Color", &border_color.r);
   ImGui::ColorEdit3("Fill Color", &fill_color.r);
 
   ImGui::End();
 }
-
