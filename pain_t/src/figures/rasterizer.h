@@ -162,7 +162,8 @@ inline void draw_8_points(engine_2d *engine, point center, int x, int y,
   }
 }
 
-inline void draw_circle(engine_2d *engine, point center, int r, color c, bool fill = false) {
+inline void draw_circle(engine_2d *engine, point center, int r, color c,
+                        bool fill = false) {
   int x = 0;
   int y = r;
   int d = 1 - r;
@@ -191,7 +192,21 @@ inline void draw_ellipse_points(engine_2d *engine, point center, int x, int y,
   }
 }
 
-inline void draw(engine_2d *engine, point center, int a, int b, color c, bool fill = false) {
+inline void draw(engine_2d *engine, point center, int a, int b, color c,
+                 bool fill = false) {
+  if (a == 0 && b == 0) {
+    engine->put_pixel(center.x, center.y, c);
+    return;
+  }
+  if (b == 0) {
+    line::draw_horizontal(engine, center.x - a, center.x + a, center.y, c);
+    return;
+  }
+  if (a == 0) {
+    line::draw_vertical(engine, center.y - b, center.y + b, center.x, c);
+    return;
+  }
+
   int x = 0;
   int y = b;
 
