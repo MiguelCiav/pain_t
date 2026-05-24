@@ -6,8 +6,9 @@
 #include "../scene/app.h"
 #include <string>
 
-triangle_tool::triangle_tool(engine_2d *engine, std::vector<figure *> &figures)
-    : engine(engine), scene_figures(figures) {}
+triangle_tool::triangle_tool(engine_2d *engine, std::vector<figure *> &figures,
+                             app *application)
+    : i_tool(engine, figures, application) {}
 
 void triangle_tool::on_mouse_down(int button, point p) {
   if (state == 0) {
@@ -21,17 +22,9 @@ void triangle_tool::on_mouse_down(int button, point p) {
   } else if (state == 2) {
     p3 = p;
     state = 0;
-
     std::vector<point> tri_points = {p1, p2, p3};
-    color border_color = color(0, 0, 0);
-    color fill_color = color(0, 0, 0);
-    if (engine != nullptr) {
-      app *application = static_cast<app *>(engine);
-      border_color = application->get_border_color();
-      fill_color = application->get_fill_color();
-    }
-    figure *new_tri =
-        new triangle(tri_points, border_color, fill_color, true, engine);
+    figure *new_tri = new triangle(tri_points, application->get_border_color(),
+                                   application->get_fill_color(), true, engine);
     scene_figures.push_back(new_tri);
   }
 }
@@ -52,23 +45,12 @@ void triangle_tool::on_key_down(int key) {}
 
 void triangle_tool::draw_preview() {
   if (state == 1) {
-    color border_color = color(0, 0, 0);
-    if (engine != nullptr) {
-      app *application = static_cast<app *>(engine);
-      border_color = application->get_border_color();
-    }
-    line temp_line(p1, p2, border_color, engine);
+    line temp_line(p1, p2, application->get_border_color(), engine);
     temp_line.draw_border();
   } else if (state == 2) {
-    color border_color = color(0, 0, 0);
-    color fill_color = color(0, 0, 0);
-    if (engine != nullptr) {
-      app *application = static_cast<app *>(engine);
-      border_color = application->get_border_color();
-      fill_color = application->get_fill_color();
-    }
     std::vector<point> tri_points = {p1, p2, p3};
-    triangle temp_tri(tri_points, border_color, fill_color, true, engine);
+    triangle temp_tri(tri_points, application->get_border_color(),
+                      application->get_fill_color(), true, engine);
     temp_tri.draw();
   }
 }

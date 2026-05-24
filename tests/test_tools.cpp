@@ -5,10 +5,12 @@
 #include "../pain_t/src/tools/line_tool.h"
 #include "../pain_t/src/engine/engine_2d.h"
 #include <vector>
+#include "../pain_t/src/scene/app.h"
 
 TEST_CASE("line_tool state logic and figure generation", "[tools][line_tool]") {
     std::vector<figure*> figures;
-    line_tool tool(nullptr, figures);
+    app test_app;
+    line_tool tool(&test_app, figures, &test_app);
     
     SECTION("tool identification") {
         REQUIRE(tool.get_name() == "line_tool");

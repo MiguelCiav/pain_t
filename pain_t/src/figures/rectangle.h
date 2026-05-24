@@ -15,6 +15,8 @@ public:
             engine_2d *engine);
   rectangle(std::vector<point> points, color border_color, color fill_color,
             bool filled, engine_2d *engine);
+  rectangle(point p1, point p2, color border_color, color fill_color,
+            bool filled, engine_2d *engine);
 
   // OVERRIDES
   bool can_fill() const override { return true; };

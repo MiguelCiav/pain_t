@@ -18,6 +18,14 @@ rectangle::rectangle(std::vector<point> points, color border_color,
     control_points.push_back(control_point(p));
 };
 
+rectangle::rectangle(point p1, point p2, color border_color, color fill_color,
+                     bool filled, engine_2d *engine)
+    : figure(border_color, fill_color, filled, engine) {
+  bounding_box bb = bounding_box({p1, p2});
+  for (auto p : bb.get_bounding_box())
+    control_points.push_back(control_point(p));
+};
+
 void rectangle::draw_border() {
   rasterizer::draw_line(engine, control_points[0].get_position(),
                         control_points[1].get_position(), border_color);

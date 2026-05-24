@@ -23,9 +23,9 @@ void app::setup() {
   clear(background_color);
   std::cout << "pain_t engine initialized successfully." << std::endl;
 
-  l_tool = new line_tool(this, figures);
-  r_tool = new rect_tool(this, figures);
-  t_tool = new triangle_tool(this, figures);
+  l_tool = new line_tool(this, figures, this);
+  r_tool = new rect_tool(this, figures, this);
+  t_tool = new triangle_tool(this, figures, this);
   active_tool = l_tool;
 }
 
@@ -90,8 +90,3 @@ void app::draw_ui() {
   ImGui::End();
 }
 
-int main() {
-  app engine;
-  engine.run();
-  return 0;
-}
