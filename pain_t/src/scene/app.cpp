@@ -6,6 +6,7 @@
 #include "../tools/line_tool.h"
 #include "../tools/rect_tool.h"
 #include "../tools/triangle_tool.h"
+#include "tools/bezier_tool.h"
 #include <iostream>
 
 app::app() : engine_2d(800, 600, "pain_t") {}
@@ -15,6 +16,7 @@ app::~app() {
   delete r_tool;
   delete t_tool;
   delete e_tool;
+  delete b_tool;
   for (figure *fig : figures) {
     delete fig;
   }
@@ -28,6 +30,7 @@ void app::setup() {
   r_tool = new rect_tool(this, figures, this);
   t_tool = new triangle_tool(this, figures, this);
   e_tool = new ellipse_tool(this, figures, this);
+  b_tool = new bezier_tool(this, figures, this);
   active_tool = l_tool;
 }
 
@@ -84,6 +87,10 @@ void app::draw_ui() {
 
   if (ImGui::Button("Ellipse Tool")) {
     active_tool = e_tool;
+  }
+
+  if (ImGui::Button("Bezier Tool")) {
+    active_tool = b_tool;
   }
 
   ImGui::Separator();

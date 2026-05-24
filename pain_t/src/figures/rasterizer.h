@@ -3,6 +3,7 @@
 #include "../engine/engine_2d.h"
 #include "point.h"
 #include <algorithm>
+#include <stdexcept>
 
 namespace rasterizer {
 namespace line {
@@ -240,4 +241,32 @@ inline void draw(engine_2d *engine, point center, int a, int b, color c,
   }
 }
 } // namespace ellipse
+namespace bezier {
+inline const double bezier_step = 0.01;
+inline void draw(engine_2d *engine, std::vector<point> points, color c) {
+  if (points.size() <= 2)
+    throw std::logic_error("Need more than two points to draw a bezier curve");
+  point previous = point(0, 0);
+  for (double t = 0; t <= 1; t += bezier::bezier_step) {
+    std::vector<point> aux_points = points;
+    int curr_size = points.size();
+    for (int i = 0; i < points.size() - 1; i++) {
+      for (int j = 0; j < curr_size - 1; j++) {
+        aux_points[j] = ((1 - t) * aux_points[j]) + (t * aux_points[j + 1]);
+      }
+      curr_size--;
+    }
+    if (t == 0) {
+      previous = point(static_cast<int>(aux_points[0].x),
+                       static_cast<int>(aux_points[0].y));
+      engine->put_pixel(previous.x, previous.y, c);
+      continue;
+    }
+    point current = point(static_cast<int>(aux_points[0].x),
+                          static_cast<int>(aux_points[0].y));
+    line::draw(engine, previous, current, c);
+    previous = current;
+  }
+}
+} // namespace bezier
 } // namespace rasterizer

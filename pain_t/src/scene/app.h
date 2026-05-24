@@ -1,5 +1,6 @@
 #pragma once
 #include "../engine/engine_2d.h"
+#include "GLFW/glfw3.h"
 #include <vector>
 
 // Forward declarations
@@ -17,6 +18,7 @@ private:
   i_tool *r_tool = nullptr;
   i_tool *t_tool = nullptr;
   i_tool *e_tool = nullptr;
+  i_tool *b_tool = nullptr;
 
 public:
   app();
@@ -32,6 +34,9 @@ public:
   color get_border_color() { return border_color; }
   color get_fill_color() { return fill_color; }
   bool is_ctrl_pressed() const {
-    return is_key_pressed(GLFW_KEY_LEFT_CONTROL) || is_key_pressed(GLFW_KEY_RIGHT_CONTROL);
+    return is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||
+           is_key_pressed(GLFW_KEY_RIGHT_CONTROL);
   }
+  bool is_enter_pressed() const { return is_key_pressed(GLFW_KEY_ENTER); }
+  bool is_escape_pressed() const { return is_key_pressed(GLFW_KEY_ESCAPE); }
 };
