@@ -67,8 +67,8 @@ inline void draw_vertical_line(engine_2d *engine, int y1, int y2, int x,
 }
 // TRIANGLE FILLING
 struct line_tracer_y {
-  int x;            // first pixel in walk direction (internal state)
-  int x_min, x_max; // leftmost and rightmost pixel at current scanline
+  int x;
+  int x_min, x_max;
   int y;
   int target_x, target_y;
   int dx, dy;
@@ -76,14 +76,11 @@ struct line_tracer_y {
   int D;
   bool is_low;
 
-  // Finds x_max for the current scanline by simulating forward with a
-  // temporary copy of D. This does NOT modify the real D state.
   void compute_scanline_extent() {
     if (!is_low) {
       x_min = x_max = x;
       return;
     }
-    // Simulate forward to find the last pixel at the current y
     int tmp_x = x;
     int tmp_D = D;
     while (true) {
@@ -119,7 +116,6 @@ struct line_tracer_y {
     if (y >= target_y)
       return;
     if (!is_low) {
-      // Steep edge: one pixel per scanline, matches draw_line_high
       if (D > 0) {
         x += direction_x;
         D += 2 * (dx - dy);
@@ -129,9 +125,6 @@ struct line_tracer_y {
       y++;
       x_min = x_max = x;
     } else {
-      // Shallow edge: walk through pixels at current y until y changes.
-      // Process D BEFORE advancing x, matching draw_line_low's sequence:
-      //   put_pixel(x, y) → check D → update D → increment x
       int current_y = y;
       while (y == current_y) {
         if (D > 0) {
@@ -141,8 +134,6 @@ struct line_tracer_y {
           D += 2 * dy;
         }
         if (y != current_y) {
-          // y changed: current x was the last pixel of the old scanline.
-          // The first pixel of the new scanline is at x + direction_x.
           x += direction_x;
           break;
         }

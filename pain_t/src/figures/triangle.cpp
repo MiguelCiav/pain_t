@@ -48,8 +48,6 @@ void triangle::draw_fill() {
   line_b.init(p1, p2);
 
   for (int y = p1.y; y <= p3.y; y++) {
-    // Use x_min/x_max to get the full pixel extent of each edge,
-    // ensuring the fill covers the entire width including border pixels
     int x_left = std::min(line_a.x_min, line_b.x_min);
     int x_right = std::max(line_a.x_max, line_b.x_max);
 
@@ -60,8 +58,6 @@ void triangle::draw_fill() {
 
     if (y == (int)p2.y) {
       line_b.init(p2, p3);
-      // Advance once so line_b is ready for y = p2.y + 1,
-      // since the scanline at p2.y was already drawn above
       line_b.advance_to_next_y();
     }
   }
