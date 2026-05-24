@@ -1,6 +1,7 @@
 #include "app.h"
 #include "../figures/figure.h"
 #include "../figures/line.h"
+#include "../figures/rasterizer.h"
 #include "../figures/rectangle.h"
 #include "../tools/line_tool.h"
 #include "../tools/rect_tool.h"
@@ -21,7 +22,7 @@ app::~app() {
 void app::setup() {
   clear(background_color);
   std::cout << "pain_t engine initialized successfully." << std::endl;
-  
+
   l_tool = new line_tool(this, figures);
   r_tool = new rect_tool(this, figures);
   t_tool = new triangle_tool(this, figures);
@@ -55,6 +56,9 @@ void app::update(float deltaTime) {
     fig->draw();
   }
 
+  rasterizer::draw_circle(this, 200, 200, 50, color(0, 0, 0));
+  rasterizer::draw_ellipse(this, 400, 200, 80, 40, color(0, 0, 0));
+
   if (active_tool) {
     active_tool->draw_preview();
   }
@@ -62,23 +66,23 @@ void app::update(float deltaTime) {
 
 void app::draw_ui() {
   ImGui::Begin("Tools");
-  
+
   std::string current = active_tool ? active_tool->get_name() : "None";
   ImGui::Text("Active Tool: %s", current.c_str());
   ImGui::Separator();
-  
+
   if (ImGui::Button("Line Tool")) {
-      active_tool = l_tool;
+    active_tool = l_tool;
   }
-  
+
   if (ImGui::Button("Rectangle Tool")) {
-      active_tool = r_tool;
+    active_tool = r_tool;
   }
-  
+
   if (ImGui::Button("Triangle Tool")) {
-      active_tool = t_tool;
+    active_tool = t_tool;
   }
-  
+
   ImGui::Separator();
   ImGui::ColorEdit3("Border Color", &border_color.r);
   ImGui::ColorEdit3("Fill Color", &fill_color.r);

@@ -67,8 +67,8 @@ inline void draw_vertical_line(engine_2d *engine, int y1, int y2, int x,
 }
 // TRIANGLE FILLING
 struct line_tracer_y {
-  int x;               // first pixel in walk direction (internal state)
-  int x_min, x_max;    // leftmost and rightmost pixel at current scanline
+  int x;            // first pixel in walk direction (internal state)
+  int x_min, x_max; // leftmost and rightmost pixel at current scanline
   int y;
   int target_x, target_y;
   int dx, dy;
@@ -152,5 +152,80 @@ struct line_tracer_y {
     }
   }
 };
+
+// CIRCLE
+inline void draw_8_points(engine_2d *engine, int cx, int cy, int x, int y,
+                          color c) {
+  engine->put_pixel(cx + x, cy + y, c);
+  engine->put_pixel(cx - x, cy + y, c);
+  engine->put_pixel(cx + x, cy - y, c);
+  engine->put_pixel(cx - x, cy - y, c);
+
+  engine->put_pixel(cx + y, cy + x, c);
+  engine->put_pixel(cx - y, cy + x, c);
+  engine->put_pixel(cx + y, cy - x, c);
+  engine->put_pixel(cx - y, cy - x, c);
+}
+
+inline void draw_circle(engine_2d *engine, int cx, int cy, int r, color c) {
+  int x = 0;
+  int y = r;
+  int d = 1 - r;
+  draw_8_points(engine, cx, cy, x, y, c);
+  while (y > x) {
+    if (d < 0) {
+      d += 2 * x + 3;
+    } else {
+      d += 2 * (x - y) + 5;
+      y--;
+    }
+    x++;
+    draw_8_points(engine, cx, cy, x, y, c);
+  }
+}
+
+// ELLIPSE
+inline void draw_ellipse_points(engine_2d *engine, int cx, int cy, int x, int y,
+                                color c) {
+  engine->put_pixel(cx + x, cy + y, c);
+  engine->put_pixel(cx - x, cy + y, c);
+  engine->put_pixel(cx + x, cy - y, c);
+  engine->put_pixel(cx - x, cy - y, c);
+}
+
+inline void draw_ellipse(engine_2d *engine, int cx, int cy, int a, int b,
+                         color c) {
+  int x = 0;
+  int y = b;
+
+  int d = b * (4 * b - 4 * a * a) + a * a;
+
+  draw_ellipse_points(engine, cx, cy, x, y, c);
+
+  while (b * b * 2 * (x + 1) < a * a * (2 * y - 1)) {
+    if (d < 0) {
+      d += 4 * (b * b * (2 * x + 3));
+    } else {
+      d += 4 * (b * b * (2 * x + 3) + a * a * (-2 * y + 2));
+      y--;
+    }
+    x++;
+    draw_ellipse_points(engine, cx, cy, x, y, c);
+  }
+
+  d = b * b * (2 * x + 1) * (2 * x + 1) + 4 * a * a * (y - 1) * (y - 1) -
+      4 * a * a * b * b;
+
+  while (y > 0) {
+    if (d < 0) {
+      d += 4 * (b * b * (2 * x + 2) + a * a * (-2 * y + 3));
+      x++;
+    } else {
+      d += 4 * a * a * (-2 * y + 3);
+    }
+    y--;
+    draw_ellipse_points(engine, cx, cy, x, y, c);
+  }
+}
 
 } // namespace rasterizer
