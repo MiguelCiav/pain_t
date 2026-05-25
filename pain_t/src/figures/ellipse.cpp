@@ -1,7 +1,7 @@
 #include "ellipse.h"
 #include "../engine/engine_2d.h"
-#include "figures/bounding_box.h"
-#include "figures/control_point.h"
+#include "bounding_box.h"
+#include "control_point.h"
 #include "rasterizer.h"
 #include <stdexcept>
 #include <vector>

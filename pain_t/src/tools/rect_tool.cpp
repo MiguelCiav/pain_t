@@ -3,6 +3,7 @@
 #include "../figures/figure.h"
 #include "../figures/rectangle.h"
 #include "../scene/app.h"
+#include <stdexcept>
 #include <string>
 
 rect_tool::rect_tool(engine_2d *engine, std::vector<figure *> &figures,

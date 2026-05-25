@@ -3,9 +3,7 @@
 #include "../figures/bezier.h"
 #include "../figures/figure.h"
 #include "../scene/app.h"
-#include "figures/line.h"
-#include "figures/point.h"
-#include <iostream>
+#include "../figures/line.h"
 #include <string>
 
 bezier_tool::bezier_tool(engine_2d *engine, std::vector<figure *> &figures,

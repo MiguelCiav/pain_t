@@ -1,9 +1,11 @@
 #pragma once
-#include "../engine/engine_2d.h"
-#include "../figures/figure.h"
 #include "../figures/point.h"
-#include "../scene/app.h"
 #include <string>
+#include <vector>
+
+class engine_2d;
+class figure;
+class app;
 
 class i_tool {
 protected:

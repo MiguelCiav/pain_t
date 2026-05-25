@@ -6,7 +6,7 @@
 #include "../tools/line_tool.h"
 #include "../tools/rect_tool.h"
 #include "../tools/triangle_tool.h"
-#include "tools/bezier_tool.h"
+#include "../tools/bezier_tool.h"
 #include <iostream>
 
 app::app() : engine_2d(800, 600, "pain_t") {}

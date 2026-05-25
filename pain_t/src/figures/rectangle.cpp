@@ -1,6 +1,6 @@
 #include "rectangle.h"
 #include "../engine/engine_2d.h"
-#include "figures/bounding_box.h"
+#include "bounding_box.h"
 #include "rasterizer.h"
 #include <stdexcept>
 #include <vector>

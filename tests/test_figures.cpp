@@ -5,6 +5,10 @@
 #include "../pain_t/src/figures/control_point.h"
 #include "../pain_t/src/figures/figure.h"
 #include "../pain_t/src/figures/line.h"
+#include "../pain_t/src/figures/rectangle.h"
+#include "../pain_t/src/figures/triangle.h"
+#include "../pain_t/src/figures/ellipse.h"
+#include "../pain_t/src/figures/bezier.h"
 #include "../pain_t/src/engine/engine_2d.h"
 #include <vector>
 #include <stdexcept>
@@ -300,4 +304,169 @@ TEST_CASE("line primitive coverage", "[figures][line]") {
         REQUIRE_THROWS_AS(l.get_bounding_box(), std::logic_error);
     }
 }
+
+TEST_CASE("rectangle primitive coverage", "[figures][rectangle]") {
+    point p1(0.0, 0.0);
+    point p2(100.0, 50.0);
+    color border_color(1.0f, 0.0f, 0.0f);
+    color fill_color(0.0f, 1.0f, 0.0f);
+
+    SECTION("default constructor") {
+        rectangle r;
+        REQUIRE(r.get_control_points().empty());
+        REQUIRE(r.get_type_tag() == "rectangle");
+        REQUIRE(r.can_fill());
+    }
+
+    SECTION("parameterized constructor (p1, p2)") {
+        rectangle r(p1, p2, border_color, fill_color, true, nullptr);
+        REQUIRE(r.get_control_points().size() == 4);
+        REQUIRE(r.get_border_color() == border_color);
+        REQUIRE(r.get_fill_color() == fill_color);
+        REQUIRE(r.is_filled());
+        
+        // Corners generated from p1(0,0) and p2(100,50)
+        // bounding box should be (0,0), (100,0), (100,50), (0,50)
+        auto pts = r.get_control_points();
+        REQUIRE(pts[0].get_x() == 0.0);
+        REQUIRE(pts[0].get_y() == 0.0);
+        REQUIRE(pts[1].get_x() == 100.0);
+        REQUIRE(pts[1].get_y() == 0.0);
+        REQUIRE(pts[2].get_x() == 100.0);
+        REQUIRE(pts[2].get_y() == 50.0);
+        REQUIRE(pts[3].get_x() == 0.0);
+        REQUIRE(pts[3].get_y() == 50.0);
+    }
+
+    SECTION("parameterized constructor (vector points)") {
+        std::vector<point> pts = {point(0,0), point(10,0), point(10,10), point(0,10)};
+        rectangle r(pts, border_color, fill_color, false, nullptr);
+        REQUIRE(r.get_control_points().size() == 4);
+        REQUIRE_FALSE(r.is_filled());
+        REQUIRE(r.get_control_points()[2].get_x() == 10.0);
+        
+        // Throws if size is not 4
+        std::vector<point> bad_pts = {point(0,0), point(10,0)};
+        REQUIRE_THROWS_AS(rectangle(bad_pts, border_color, fill_color, false, nullptr), std::logic_error);
+    }
+
+    SECTION("contains_point always returns false") {
+        rectangle r(p1, p2, border_color, fill_color, true, nullptr);
+        REQUIRE_FALSE(r.contains_point(50.0, 25.0));
+    }
+}
+
+TEST_CASE("triangle primitive coverage", "[figures][triangle]") {
+    std::vector<point> tri_pts = {point(0.0, 0.0), point(100.0, 0.0), point(50.0, 86.6)};
+    color border_color(0.0f, 0.0f, 1.0f);
+    color fill_color(1.0f, 1.0f, 0.0f);
+
+    SECTION("default constructor") {
+        triangle t;
+        REQUIRE(t.get_control_points().empty());
+        REQUIRE(t.get_type_tag() == "triangle");
+        REQUIRE(t.can_fill());
+    }
+
+    SECTION("parameterized constructor (vector points)") {
+        triangle t(tri_pts, border_color, fill_color, true, nullptr);
+        REQUIRE(t.get_control_points().size() == 3);
+        REQUIRE(t.get_border_color() == border_color);
+        REQUIRE(t.get_fill_color() == fill_color);
+        REQUIRE(t.is_filled());
+        
+        REQUIRE(t.get_control_points()[0].get_x() == 0.0);
+        REQUIRE(t.get_control_points()[1].get_x() == 100.0);
+        REQUIRE(t.get_control_points()[2].get_y() == 86.6);
+
+        // Throws if size != 3
+        std::vector<point> bad_pts = {point(0,0), point(10,0)};
+        REQUIRE_THROWS_AS(triangle(bad_pts, border_color, fill_color, true, nullptr), std::logic_error);
+    }
+
+    SECTION("contains_point always returns false") {
+        triangle t(tri_pts, border_color, fill_color, true, nullptr);
+        REQUIRE_FALSE(t.contains_point(50.0, 30.0));
+    }
+}
+
+TEST_CASE("ellipse primitive coverage", "[figures][ellipse]") {
+    point p1(0.0, 0.0);
+    point p2(100.0, 50.0);
+    color border_color(1.0f, 1.0f, 1.0f);
+    color fill_color(0.5f, 0.5f, 0.5f);
+
+    SECTION("default constructor") {
+        ellipse e;
+        REQUIRE(e.get_control_points().empty());
+        REQUIRE(e.get_type_tag() == "ellipse");
+        REQUIRE(e.can_fill());
+    }
+
+    SECTION("parameterized constructor (p1, p2)") {
+        ellipse e(p1, p2, border_color, fill_color, true, nullptr);
+        // Ellipse constructor constructs center + x-radius-handle + y-radius-handle
+        REQUIRE(e.get_control_points().size() == 3);
+        
+        // Bounding box of (0,0) to (100,50) has center at (50, 25)
+        // Center control point (idx 0)
+        REQUIRE(e.get_center().x == 50.0);
+        REQUIRE(e.get_center().y == 25.0);
+        
+        // y-radius handle (idx 1): center.x, bb[0].y -> (50, 0)
+        REQUIRE(e.get_control_points()[1].get_x() == 50.0);
+        REQUIRE(e.get_control_points()[1].get_y() == 0.0);
+        
+        // x-radius handle (idx 2): bb[1].x, center.y -> (100, 25)
+        REQUIRE(e.get_control_points()[2].get_x() == 100.0);
+        REQUIRE(e.get_control_points()[2].get_y() == 25.0);
+    }
+
+    SECTION("parameterized constructor (vector points)") {
+        std::vector<point> pts = {point(50,25), point(50,0), point(100,25)};
+        ellipse e(pts, border_color, fill_color, false, nullptr);
+        REQUIRE(e.get_control_points().size() == 3);
+        REQUIRE(e.get_center().x == 50.0);
+        
+        std::vector<point> bad_pts = {point(0,0), point(10,0)};
+        REQUIRE_THROWS_AS(ellipse(bad_pts, border_color, fill_color, false, nullptr), std::logic_error);
+    }
+
+    SECTION("contains_point always returns false") {
+        ellipse e(p1, p2, border_color, fill_color, true, nullptr);
+        REQUIRE_FALSE(e.contains_point(50.0, 25.0));
+    }
+}
+
+TEST_CASE("bezier primitive coverage", "[figures][bezier]") {
+    std::vector<point> pts = {point(0,0), point(50,100), point(100,0)};
+    color border_color(0.5f, 0.5f, 0.5f);
+
+    SECTION("default constructor") {
+        bezier b;
+        REQUIRE(b.get_control_points().empty());
+        REQUIRE(b.get_type_tag() == "bezier");
+        REQUIRE_FALSE(b.can_fill());
+        REQUIRE_THROWS_AS(b.draw_fill(), std::logic_error);
+    }
+
+    SECTION("parameterized constructor") {
+        bezier b(pts, border_color, nullptr);
+        REQUIRE(b.get_control_points().size() == 3);
+        REQUIRE(b.get_border_color() == border_color);
+        REQUIRE(b.get_control_points()[1].get_y() == 100.0);
+    }
+
+    SECTION("draw_border throws when control points < 3") {
+        std::vector<point> bad_pts = {point(0,0), point(10,10)};
+        bezier b(bad_pts, border_color, nullptr);
+        REQUIRE_THROWS_AS(b.draw_border(), std::logic_error);
+    }
+
+    SECTION("contains_point always returns false") {
+        bezier b(pts, border_color, nullptr);
+        REQUIRE_FALSE(b.contains_point(50.0, 50.0));
+    }
+}
+
 
