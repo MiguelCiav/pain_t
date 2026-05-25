@@ -4,6 +4,7 @@
 #include "../figures/figure.h"
 #include "../scene/app.h"
 #include "figures/line.h"
+#include "figures/point.h"
 #include <iostream>
 #include <string>
 
@@ -34,6 +35,11 @@ void bezier_tool::on_key_down(int key) {
   if (!is_drawing) {
     return;
   }
+  if (points.size() < 3) {
+    is_drawing = false;
+    points.clear();
+    return;
+  }
   if (application->is_enter_pressed() || application->is_escape_pressed()) {
     is_drawing = false;
     figure *new_bezier =
@@ -47,8 +53,12 @@ void bezier_tool::draw_preview() {
   if (!is_drawing) {
     return;
   }
-  
-  points.push_back(current_mouse_pos);
+
+  bool pushed_preview = false;
+  if (points.empty() || !(points.back() == current_mouse_pos)) {
+    points.push_back(current_mouse_pos);
+    pushed_preview = true;
+  }
 
   if (points.size() >= 2) {
     for (int i = 0; i < points.size() - 1; i++) {
@@ -62,7 +72,9 @@ void bezier_tool::draw_preview() {
     temp_bezier.draw_border();
   }
 
-  points.pop_back();
+  if (pushed_preview) {
+    points.pop_back();
+  }
 }
 
 std::string bezier_tool::get_name() { return "bezier_tool"; }

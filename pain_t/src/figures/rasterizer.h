@@ -247,7 +247,9 @@ inline void draw(engine_2d *engine, std::vector<point> points, color c) {
   if (points.size() <= 2)
     throw std::logic_error("Need more than two points to draw a bezier curve");
   point previous = point(0, 0);
-  for (double t = 0; t <= 1; t += bezier::bezier_step) {
+  int steps = static_cast<int>(1.0 / bezier::bezier_step + 0.5);
+  for (int step = 0; step <= steps; ++step) {
+    double t = static_cast<double>(step) / steps;
     std::vector<point> aux_points = points;
     int curr_size = points.size();
     for (int i = 0; i < points.size() - 1; i++) {
@@ -256,7 +258,7 @@ inline void draw(engine_2d *engine, std::vector<point> points, color c) {
       }
       curr_size--;
     }
-    if (t == 0) {
+    if (step == 0) {
       previous = point(static_cast<int>(aux_points[0].x),
                        static_cast<int>(aux_points[0].y));
       engine->put_pixel(previous.x, previous.y, c);
