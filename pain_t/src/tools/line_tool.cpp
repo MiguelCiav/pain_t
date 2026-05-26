@@ -31,7 +31,7 @@ void line_tool::on_mouse_up(int button, point p) {
     return;
   }
   figure *new_line = new line(starting_point, ending_point,
-                              application->get_border_color(), engine);
+                              application->get_scene().get_active_border_color(), engine);
   application->get_scene().add_figure(new_line);
 }
 
@@ -41,7 +41,7 @@ void line_tool::draw_preview() {
   if (!is_drawing) {
     return;
   }
-  line temp_line(starting_point, ending_point, application->get_border_color(),
+  line temp_line(starting_point, ending_point, application->get_scene().get_active_border_color(),
                  engine);
   temp_line.draw_border();
 }

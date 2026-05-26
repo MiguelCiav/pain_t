@@ -45,8 +45,8 @@ void rect_tool::on_mouse_up(int button, point p) {
   }
 
   figure *new_rect = new rectangle(starting_point, adjusted_end,
-                                   application->get_border_color(),
-                                   application->get_fill_color(), true, engine);
+                                   application->get_scene().get_active_border_color(),
+                                   application->get_scene().get_active_fill_color(), true, engine);
   application->get_scene().add_figure(new_rect);
 }
 
@@ -67,8 +67,8 @@ void rect_tool::draw_preview() {
   }
 
   rectangle temp_rect(starting_point, adjusted_end,
-                      application->get_border_color(),
-                      application->get_fill_color(), true, engine);
+                      application->get_scene().get_active_border_color(),
+                      application->get_scene().get_active_fill_color(), true, engine);
   temp_rect.draw();
 }
 

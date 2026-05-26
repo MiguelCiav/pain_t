@@ -2,15 +2,15 @@
 #include "../figures/figure.h"
 #include "../figures/line.h"
 #include "../figures/rectangle.h"
+#include "../tools/bezier_tool.h"
 #include "../tools/ellipse_tool.h"
 #include "../tools/line_tool.h"
 #include "../tools/rect_tool.h"
-#include "../tools/triangle_tool.h"
-#include "../tools/bezier_tool.h"
 #include "../tools/selection_tool.h"
+#include "../tools/triangle_tool.h"
 #include <iostream>
 
-app::app() : engine_2d(800, 600, "pain_t") {}
+app::app(int width, int height) : engine_2d(width, height, "pain_t") {}
 
 app::~app() {
   delete l_tool;
@@ -22,7 +22,7 @@ app::~app() {
 }
 
 void app::setup() {
-  clear(background_color);
+  clear(main_scene.get_background_color());
   std::cout << "pain_t engine initialized successfully." << std::endl;
 
   l_tool = new line_tool(this, this);
@@ -59,11 +59,8 @@ void app::on_mouse_move(double x, double y) {
 }
 
 void app::update(float deltaTime) {
-  clear(background_color);
-
-  for (figure *fig : main_scene.get_figures()) {
-    fig->draw();
-  }
+  clear(main_scene.get_background_color());
+  main_scene.draw_all(this);
 
   if (active_tool) {
     active_tool->draw_preview();
@@ -71,7 +68,11 @@ void app::update(float deltaTime) {
 }
 
 void app::draw_ui() {
-  ImGui::Begin("Tools");
+  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(200, get_height()), ImGuiCond_Always);
+  ImGui::Begin("Tools", nullptr,
+               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
+                   ImGuiWindowFlags_NoCollapse);
 
   std::string current = active_tool ? active_tool->get_name() : "None";
   ImGui::Text("Active Tool: %s", current.c_str());
@@ -102,8 +103,24 @@ void app::draw_ui() {
   }
 
   ImGui::Separator();
-  ImGui::ColorEdit3("Border Color", &border_color.r);
-  ImGui::ColorEdit3("Fill Color", &fill_color.r);
+
+  ImGui::Text("Border Color");
+  color border = main_scene.get_active_border_color();
+  if (ImGui::ColorEdit3("##Border Color", &border.r)) {
+    main_scene.set_active_border_color(border);
+  }
+
+  ImGui::Text("Fill Color");
+  color fill = main_scene.get_active_fill_color();
+  if (ImGui::ColorEdit3("##Fill Color", &fill.r)) {
+    main_scene.set_active_fill_color(fill);
+  }
+
+  ImGui::Text("Background Color");
+  color bg = main_scene.get_background_color();
+  if (ImGui::ColorEdit3("##Background Color", &bg.r)) {
+    main_scene.set_background_color(bg);
+  }
 
   ImGui::End();
 }

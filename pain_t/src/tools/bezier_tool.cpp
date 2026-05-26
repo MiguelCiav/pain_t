@@ -40,7 +40,7 @@ void bezier_tool::on_key_down(int key) {
   if (application->is_enter_pressed() || application->is_escape_pressed()) {
     is_drawing = false;
     figure *new_bezier =
-        new bezier(points, application->get_border_color(), engine);
+        new bezier(points, application->get_scene().get_active_border_color(), engine);
     application->get_scene().add_figure(new_bezier);
     points.clear();
   }
@@ -65,7 +65,7 @@ void bezier_tool::draw_preview() {
   }
 
   if (points.size() >= 3) {
-    bezier temp_bezier(points, application->get_border_color(), engine);
+    bezier temp_bezier(points, application->get_scene().get_active_border_color(), engine);
     temp_bezier.draw_border();
   }
 

@@ -1,4 +1,5 @@
 #include "scene.h"
+#include "../engine/engine_2d.h"
 
 scene::~scene() {
     for (figure* fig : figures) {
@@ -45,4 +46,10 @@ figure* scene::query_at(point click) const {
         }
     }
     return nullptr;
+}
+
+void scene::draw_all(engine_2d *engine) const {
+    for (figure *fig : figures) {
+        fig->draw();
+    }
 }

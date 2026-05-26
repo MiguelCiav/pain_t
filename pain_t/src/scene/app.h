@@ -10,9 +10,6 @@ class i_tool;
 
 class app : public engine_2d {
 private:
-  color background_color = color(0.85f, 0.85f, 0.85f);
-  color border_color;
-  color fill_color;
   scene main_scene;
   i_tool *active_tool = nullptr;
   i_tool *l_tool = nullptr;
@@ -23,7 +20,7 @@ private:
   i_tool *s_tool = nullptr;
 
 public:
-  app();
+  app(int width = 800, int height = 600);
   ~app();
 
   void setup() override;
@@ -33,8 +30,6 @@ public:
   void on_mouse_move(double x, double y) override;
   void update(float deltaTime) override;
   void draw_ui() override;
-  color get_border_color() { return border_color; }
-  color get_fill_color() { return fill_color; }
   scene& get_scene() { return main_scene; }
   bool is_ctrl_pressed() const {
     return is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||

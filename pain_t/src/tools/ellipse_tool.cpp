@@ -31,7 +31,7 @@ void ellipse_tool::on_mouse_up(int button, point p) {
   if (starting_point == ending_point) {
     return;
   }
-  
+
   point adjusted_end = ending_point;
   if (application->is_ctrl_pressed()) {
     int dx = ending_point.x - starting_point.x;
@@ -41,9 +41,10 @@ void ellipse_tool::on_mouse_up(int button, point p) {
                          starting_point.y + (dy < 0 ? -max_d : max_d));
   }
 
-  figure *new_ellipse =
-      new ellipse(starting_point, adjusted_end, application->get_border_color(),
-                  application->get_fill_color(), true, engine);
+  figure *new_ellipse = new ellipse(
+      starting_point, adjusted_end,
+      application->get_scene().get_active_border_color(),
+      application->get_scene().get_active_fill_color(), true, engine);
   application->get_scene().add_figure(new_ellipse);
 }
 
@@ -63,12 +64,15 @@ void ellipse_tool::draw_preview() {
                          starting_point.y + (dy < 0 ? -max_d : max_d));
   }
 
-  rectangle bounding_box_rect(starting_point, adjusted_end, color(0.5f, 0.5f, 0.5f), color(0.0f, 0.0f, 0.0f), false, engine);
+  rectangle bounding_box_rect(starting_point, adjusted_end,
+                              color(0.5f, 0.5f, 0.5f), color(0.0f, 0.0f, 0.0f),
+                              false, engine);
   bounding_box_rect.draw();
 
   ellipse temp_ellipse(starting_point, adjusted_end,
-                       application->get_border_color(),
-                       application->get_fill_color(), true, engine);
+                       application->get_scene().get_active_border_color(),
+                       application->get_scene().get_active_fill_color(), true,
+                       engine);
   temp_ellipse.draw();
 }
 
