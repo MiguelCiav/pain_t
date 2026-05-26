@@ -1,7 +1,9 @@
 #include "rectangle.h"
 #include "../engine/engine_2d.h"
 #include "bounding_box.h"
+#include "figures/algebra.h"
 #include "rasterizer.h"
+#include <algorithm>
 #include <stdexcept>
 #include <vector>
 
@@ -53,6 +55,27 @@ void rectangle::draw_fill() {
   }
 }
 
-bool rectangle::contains_point(double x, double y) const { return false; }
+bool rectangle::on_border(point click) const {
+  std::vector<double> distances;
+  for (int i = 0; i <= 3; i++) {
+    point a = control_points[i].get_position();
+    point b = control_points[(i + 1) % 4].get_position();
+    distances.push_back(algebra::line::distance_from_point(a, b, click));
+  }
+  auto min = std::min_element(distances.begin(), distances.end());
+  return static_cast<int>(*min) < LINE_TOLERANCE;
+};
+
+bool rectangle::on_filling(point click) const {
+  std::vector<double> d;
+  for (int i = 0; i <= 3; i++) {
+    point a = control_points[i].get_position();
+    point b = control_points[(i + 1) % 4].get_position();
+    d.push_back(algebra::line::cross_product_2d(a, b, click));
+  }
+  bool has_neg = (d[0] <= 0) && (d[1] <= 0) && (d[2] <= 0) && (d[3] <= 0);
+  bool has_pos = (d[0] >= 0) && (d[1] >= 0) && (d[2] >= 0) && (d[3] >= 0);
+  return has_neg || has_pos;
+};
 
 std::string rectangle::get_type_tag() const { return "rectangle"; }

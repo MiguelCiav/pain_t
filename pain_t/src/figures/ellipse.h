@@ -23,7 +23,9 @@ public:
   bool can_fill() const override { return true; };
   void draw_fill() override;
   void draw_border() override;
-  bool contains_point(double x, double y) const override;
+  bool on_border(point click) const override;
+  bool on_filling(point click) const override;
+  bounding_box get_bounding_box() override;
   point get_center() const override;
   std::string get_type_tag() const override;
 };

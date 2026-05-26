@@ -55,3 +55,14 @@ bounding_box figure::get_bounding_box() {
                  [](control_point cp) { return cp.get_position(); });
   return bounding_box(points);
 }
+
+bool figure::inside(point click) const {
+  if (control_points.empty()) {
+    throw std::logic_error("Cannot be inside an empty figure");
+  }
+  if (this->is_filled() && this->on_filling(click))
+    return true;
+  if (this->on_border(click))
+    return true;
+  return false;
+}

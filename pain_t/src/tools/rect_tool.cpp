@@ -32,6 +32,9 @@ void rect_tool::on_mouse_up(int button, point p) {
   }
   is_drawing = false;
   ending_point = p;
+  if (starting_point == ending_point) {
+    return;
+  }
   
   point adjusted_end = ending_point;
   if (application->is_ctrl_pressed()) {

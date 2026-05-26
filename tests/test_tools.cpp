@@ -2,6 +2,10 @@
 #include "../pain_t/src/engine/color.h"
 #include "../pain_t/src/figures/point.h"
 #include "../pain_t/src/figures/figure.h"
+#include "../pain_t/src/figures/line.h"
+#include "../pain_t/src/figures/rectangle.h"
+#include "../pain_t/src/figures/triangle.h"
+#include "../pain_t/src/figures/ellipse.h"
 #include "../pain_t/src/tools/line_tool.h"
 #include "../pain_t/src/tools/rect_tool.h"
 #include "../pain_t/src/tools/ellipse_tool.h"
@@ -10,10 +14,20 @@
 #include "../pain_t/src/engine/engine_2d.h"
 #include <vector>
 #include "../pain_t/src/scene/app.h"
+#include "../pain_t/src/scene/scene.h"
+#include "../pain_t/src/tools/selection_tool.h"
+
+inline app& get_test_app() {
+    static app test_app;
+    // Clear figures and deselect on each query
+    test_app.get_scene().deselect();
+    test_app.get_scene().get_figures().clear();
+    return test_app;
+}
 
 TEST_CASE("line_tool state logic and figure generation", "[tools][line_tool]") {
     std::vector<figure*> figures;
-    app test_app;
+    app& test_app = get_test_app();
     line_tool tool(&test_app, figures, &test_app);
     
     SECTION("tool identification") {
@@ -75,7 +89,7 @@ inline void simulate_glfw_key(GLFWwindow* win, int key, int action) {
 
 TEST_CASE("rect_tool behavior and constraints", "[tools][rect_tool]") {
     std::vector<figure*> figures;
-    app test_app;
+    app& test_app = get_test_app();
     rect_tool tool(&test_app, figures, &test_app);
     GLFWwindow* win = glfwGetCurrentContext();
 
@@ -130,7 +144,7 @@ TEST_CASE("rect_tool behavior and constraints", "[tools][rect_tool]") {
 
 TEST_CASE("ellipse_tool behavior and constraints", "[tools][ellipse_tool]") {
     std::vector<figure*> figures;
-    app test_app;
+    app& test_app = get_test_app();
     ellipse_tool tool(&test_app, figures, &test_app);
     GLFWwindow* win = glfwGetCurrentContext();
 
@@ -187,7 +201,7 @@ TEST_CASE("ellipse_tool behavior and constraints", "[tools][ellipse_tool]") {
 
 TEST_CASE("triangle_tool 3-click FSM behavior", "[tools][triangle_tool]") {
     std::vector<figure*> figures;
-    app test_app;
+    app& test_app = get_test_app();
     triangle_tool tool(&test_app, figures, &test_app);
 
     SECTION("tool identification") {
@@ -226,7 +240,7 @@ TEST_CASE("triangle_tool 3-click FSM behavior", "[tools][triangle_tool]") {
 
 TEST_CASE("bezier_tool multi-point drawing and finish trigger", "[tools][bezier_tool]") {
     std::vector<figure*> figures;
-    app test_app;
+    app& test_app = get_test_app();
     bezier_tool tool(&test_app, figures, &test_app);
     GLFWwindow* win = glfwGetCurrentContext();
 
@@ -274,4 +288,71 @@ TEST_CASE("bezier_tool multi-point drawing and finish trigger", "[tools][bezier_
         delete created;
     }
 }
+
+TEST_CASE("selection_tool complex scenarios and FSM", "[tools][selection]") {
+    std::vector<figure*> figures;
+    app& test_app = get_test_app();
+    selection_tool tool(&test_app, figures, &test_app);
+
+    SECTION("overlapping z-order selection (select topmost)") {
+        // Clear global scene
+        test_app.get_scene().get_figures().clear();
+        test_app.get_scene().deselect();
+
+        // Create figure A: Rectangle from (0, 0) to (100, 100), filled
+        figure* rectA = new rectangle(point(0,0), point(100,100), color(1,0,0), color(0,1,0), true, &test_app);
+        test_app.get_scene().add_figure(rectA);
+
+        // Create figure B: Rectangle from (50, 50) to (150, 150), filled
+        figure* rectB = new rectangle(point(50,50), point(150,150), color(0,0,1), color(1,1,0), true, &test_app);
+        test_app.get_scene().add_figure(rectB);
+
+        // Click at overlapping region (75, 75). rectB should be selected (z-order: rectB is newer/topmost)
+        tool.on_mouse_down(0, point(75, 75));
+        REQUIRE(test_app.get_scene().get_selected_figure() == rectB);
+
+        // Click at (25, 25). Only rectA contains it
+        tool.on_mouse_down(0, point(25, 25));
+        REQUIRE(test_app.get_scene().get_selected_figure() == rectA);
+
+        // Click at (200, 200). Neither contains it -> deselects
+        tool.on_mouse_down(0, point(200, 200));
+        REQUIRE(test_app.get_scene().get_selected_figure() == nullptr);
+    }
+
+    SECTION("border vs filling selection (no fill)") {
+        test_app.get_scene().get_figures().clear();
+        test_app.get_scene().deselect();
+
+        // Create figure C: Rectangle from (0,0) to (100,100), NOT filled (border only)
+        figure* rectC = new rectangle(point(0,0), point(100,100), color(1,0,0), color(0,1,0), false, &test_app);
+        test_app.get_scene().add_figure(rectC);
+
+        // Click inside at (50, 50). Since it has no fill, inside() is false -> should not select
+        tool.on_mouse_down(0, point(50, 50));
+        REQUIRE(test_app.get_scene().get_selected_figure() == nullptr);
+
+        // Click on the border at (0, 50) -> should select
+        tool.on_mouse_down(0, point(0, 50));
+        REQUIRE(test_app.get_scene().get_selected_figure() == rectC);
+    }
+
+    SECTION("ellipse selection border vs filling") {
+        test_app.get_scene().get_figures().clear();
+        test_app.get_scene().deselect();
+
+        // Create figure D: Ellipse from (0,0) to (100,100) (which constructs center at 50,50, rx=50, ry=50), NOT filled
+        figure* ellD = new ellipse(point(0,0), point(100,100), color(1,0,0), color(0,1,0), false, &test_app);
+        test_app.get_scene().add_figure(ellD);
+
+        // Click at center (50, 50) -> since not filled, should not select
+        tool.on_mouse_down(0, point(50, 50));
+        REQUIRE(test_app.get_scene().get_selected_figure() == nullptr);
+
+        // Click on border at (50, 0) -> should select
+        tool.on_mouse_down(0, point(50, 0));
+        REQUIRE(test_app.get_scene().get_selected_figure() == ellD);
+    }
+}
+
 

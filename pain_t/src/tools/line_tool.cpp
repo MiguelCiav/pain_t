@@ -28,6 +28,9 @@ void line_tool::on_mouse_up(int button, point p) {
   }
   is_drawing = false;
   ending_point = p;
+  if (starting_point == ending_point) {
+    return;
+  }
   figure *new_line = new line(starting_point, ending_point,
                               application->get_border_color(), engine);
   scene_figures.push_back(new_line);

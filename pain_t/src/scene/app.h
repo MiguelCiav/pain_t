@@ -1,6 +1,7 @@
 #pragma once
 #include "../engine/engine_2d.h"
 #include "GLFW/glfw3.h"
+#include "scene.h"
 #include <vector>
 
 // Forward declarations
@@ -12,13 +13,14 @@ private:
   color background_color = color(0.85f, 0.85f, 0.85f);
   color border_color;
   color fill_color;
-  std::vector<figure *> figures;
+  scene main_scene;
   i_tool *active_tool = nullptr;
   i_tool *l_tool = nullptr;
   i_tool *r_tool = nullptr;
   i_tool *t_tool = nullptr;
   i_tool *e_tool = nullptr;
   i_tool *b_tool = nullptr;
+  i_tool *s_tool = nullptr;
 
 public:
   app();
@@ -33,6 +35,7 @@ public:
   void draw_ui() override;
   color get_border_color() { return border_color; }
   color get_fill_color() { return fill_color; }
+  scene& get_scene() { return main_scene; }
   bool is_ctrl_pressed() const {
     return is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||
            is_key_pressed(GLFW_KEY_RIGHT_CONTROL);

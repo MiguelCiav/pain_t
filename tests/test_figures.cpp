@@ -23,7 +23,8 @@ public:
     void draw() override {}
     void draw_border() override {}
     void draw_fill() override {}
-    bool contains_point(double x, double y) const override { return false; }
+    bool on_border(point click) const override { return false; }
+    bool on_filling(point click) const override { return false; }
     bounding_box get_bounding_box() override { return {}; }
     std::string get_type_tag() const override { return "dummy"; }
     void add_test_control_point(double x, double y) {
@@ -43,7 +44,8 @@ public:
     
     void draw_border() override { draw_border_called = true; }
     void draw_fill() override { draw_fill_called = true; }
-    bool contains_point(double x, double y) const override { return false; }
+    bool on_border(point click) const override { return false; }
+    bool on_filling(point click) const override { return false; }
     bounding_box get_bounding_box() override { return {}; }
     std::string get_type_tag() const override { return "draw_test"; }
 };
@@ -279,10 +281,10 @@ TEST_CASE("line primitive coverage", "[figures][line]") {
         REQUIRE_THROWS_AS(l.draw_border(), std::logic_error);
     }
     
-    SECTION("contains_point always returns false currently") {
+    SECTION("inside hit testing") {
         line l(p1, p2, line_color, nullptr);
-        REQUIRE_FALSE(l.contains_point(10.0, 20.0));
-        REQUIRE_FALSE(l.contains_point(50.0, 110.0));
+        REQUIRE(l.inside(point(10.0, 20.0)));
+        REQUIRE_FALSE(l.inside(point(50.0, 110.0)));
     }
     
     SECTION("get_bounding_box behavior") {
@@ -350,9 +352,10 @@ TEST_CASE("rectangle primitive coverage", "[figures][rectangle]") {
         REQUIRE_THROWS_AS(rectangle(bad_pts, border_color, fill_color, false, nullptr), std::logic_error);
     }
 
-    SECTION("contains_point always returns false") {
+    SECTION("inside hit testing") {
         rectangle r(p1, p2, border_color, fill_color, true, nullptr);
-        REQUIRE_FALSE(r.contains_point(50.0, 25.0));
+        REQUIRE(r.inside(point(50.0, 25.0)));
+        REQUIRE_FALSE(r.inside(point(200.0, 200.0)));
     }
 }
 
@@ -384,9 +387,10 @@ TEST_CASE("triangle primitive coverage", "[figures][triangle]") {
         REQUIRE_THROWS_AS(triangle(bad_pts, border_color, fill_color, true, nullptr), std::logic_error);
     }
 
-    SECTION("contains_point always returns false") {
+    SECTION("inside hit testing") {
         triangle t(tri_pts, border_color, fill_color, true, nullptr);
-        REQUIRE_FALSE(t.contains_point(50.0, 30.0));
+        REQUIRE(t.inside(point(50.0, 30.0)));
+        REQUIRE_FALSE(t.inside(point(200.0, 200.0)));
     }
 }
 
@@ -420,6 +424,15 @@ TEST_CASE("ellipse primitive coverage", "[figures][ellipse]") {
         // x-radius handle (idx 2): bb[1].x, center.y -> (100, 25)
         REQUIRE(e.get_control_points()[2].get_x() == 100.0);
         REQUIRE(e.get_control_points()[2].get_y() == 25.0);
+
+        // Verify bounding box spans the entire ellipse
+        bounding_box box = e.get_bounding_box();
+        auto box_pts = box.get_bounding_box();
+        REQUIRE(box_pts.size() == 4);
+        REQUIRE(box_pts[0].x == 0.0);
+        REQUIRE(box_pts[0].y == 0.0);
+        REQUIRE(box_pts[2].x == 100.0);
+        REQUIRE(box_pts[2].y == 50.0);
     }
 
     SECTION("parameterized constructor (vector points)") {
@@ -432,9 +445,10 @@ TEST_CASE("ellipse primitive coverage", "[figures][ellipse]") {
         REQUIRE_THROWS_AS(ellipse(bad_pts, border_color, fill_color, false, nullptr), std::logic_error);
     }
 
-    SECTION("contains_point always returns false") {
+    SECTION("inside hit testing") {
         ellipse e(p1, p2, border_color, fill_color, true, nullptr);
-        REQUIRE_FALSE(e.contains_point(50.0, 25.0));
+        REQUIRE(e.inside(point(50.0, 25.0)));
+        REQUIRE_FALSE(e.inside(point(200.0, 200.0)));
     }
 }
 
@@ -463,9 +477,9 @@ TEST_CASE("bezier primitive coverage", "[figures][bezier]") {
         REQUIRE_THROWS_AS(b.draw_border(), std::logic_error);
     }
 
-    SECTION("contains_point always returns false") {
+    SECTION("inside always returns false") {
         bezier b(pts, border_color, nullptr);
-        REQUIRE_FALSE(b.contains_point(50.0, 50.0));
+        REQUIRE_FALSE(b.inside(point(50.0, 50.0)));
     }
 }
 

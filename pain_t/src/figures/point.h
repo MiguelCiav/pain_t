@@ -8,13 +8,14 @@ struct point {
   point operator+(const point &other) const {
     return point(x + other.x, y + other.y);
   }
+  point operator-(const point &other) const {
+    return point(x - other.x, y - other.y);
+  }
   point operator*(double scalar) const { return point(x * scalar, y * scalar); }
   bool operator==(const point &other) const {
     return x == other.x && y == other.y;
   }
-  bool operator!=(const point &other) const {
-    return !(*this == other);
-  }
+  bool operator!=(const point &other) const { return !(*this == other); }
 };
 
 inline point operator*(double scalar, const point &p) {

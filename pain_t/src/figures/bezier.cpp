@@ -28,6 +28,8 @@ void bezier::draw_border() {
   rasterizer::bezier::draw(engine, positions, border_color);
 }
 
-bool bezier::contains_point(double x, double y) const { return false; }
+bool bezier::on_border(point click) const { return false; }
+
+bool bezier::on_filling(point click) const { return false; }
 
 std::string bezier::get_type_tag() const { return "bezier"; }
