@@ -8,9 +8,8 @@
 #include <iostream>
 #include <string>
 
-selection_tool::selection_tool(engine_2d *engine, std::vector<figure *> &figures,
-                               app *application)
-    : i_tool(engine, figures, application) {}
+selection_tool::selection_tool(engine_2d *engine, app *application)
+    : i_tool(engine, application) {}
 
 void selection_tool::on_mouse_down(int button, point p) {
   const std::vector<figure*>& all_figs = application->get_scene().get_figures();

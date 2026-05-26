@@ -12,8 +12,7 @@ private:
   point starting_point, ending_point;
 
 public:
-  ellipse_tool(engine_2d *engine, std::vector<figure *> &figures,
-               app *application);
+  ellipse_tool(engine_2d *engine, app *application);
 
   void on_mouse_down(int button, point p) override;
   void on_mouse_move(point p) override;

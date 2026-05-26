@@ -6,9 +6,8 @@
 #include "../figures/line.h"
 #include <string>
 
-bezier_tool::bezier_tool(engine_2d *engine, std::vector<figure *> &figures,
-                         app *application)
-    : i_tool(engine, figures, application) {}
+bezier_tool::bezier_tool(engine_2d *engine, app *application)
+    : i_tool(engine, application) {}
 
 void bezier_tool::on_mouse_down(int button, point p) {
   is_drawing = true;
@@ -42,7 +41,7 @@ void bezier_tool::on_key_down(int key) {
     is_drawing = false;
     figure *new_bezier =
         new bezier(points, application->get_border_color(), engine);
-    scene_figures.push_back(new_bezier);
+    application->get_scene().add_figure(new_bezier);
     points.clear();
   }
 }

@@ -26,16 +26,15 @@ inline app& get_test_app() {
 }
 
 TEST_CASE("line_tool state logic and figure generation", "[tools][line_tool]") {
-    std::vector<figure*> figures;
     app& test_app = get_test_app();
-    line_tool tool(&test_app, figures, &test_app);
+    line_tool tool(&test_app, &test_app);
     
     SECTION("tool identification") {
         REQUIRE(tool.get_name() == "line_tool");
     }
     
     SECTION("mouse interaction workflow pushes new line") {
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
         
         // Click down at (10, 20)
         tool.on_mouse_down(0, point(10.0, 20.0));
@@ -46,8 +45,8 @@ TEST_CASE("line_tool state logic and figure generation", "[tools][line_tool]") {
         // Release at (100, 120)
         tool.on_mouse_up(0, point(100.0, 120.0));
         
-        REQUIRE(figures.size() == 1);
-        figure* created = figures[0];
+        REQUIRE(test_app.get_scene().get_figures().size() == 1);
+        figure* created = test_app.get_scene().get_figures()[0];
         REQUIRE(created->get_type_tag() == "line");
         REQUIRE(created->get_control_points().size() == 2);
         REQUIRE(created->get_control_points()[0].get_x() == 10.0);
@@ -60,15 +59,15 @@ TEST_CASE("line_tool state logic and figure generation", "[tools][line_tool]") {
     }
     
     SECTION("on_mouse_up without on_mouse_down does nothing") {
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
         tool.on_mouse_up(0, point(100.0, 120.0));
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
     }
     
     SECTION("on_mouse_move without on_mouse_down does not change state") {
         tool.on_mouse_move(point(50.0, 60.0));
         tool.on_mouse_up(0, point(100.0, 120.0));
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
     }
     
     SECTION("key events have no side effects") {
@@ -88,9 +87,8 @@ inline void simulate_glfw_key(GLFWwindow* win, int key, int action) {
 }
 
 TEST_CASE("rect_tool behavior and constraints", "[tools][rect_tool]") {
-    std::vector<figure*> figures;
     app& test_app = get_test_app();
-    rect_tool tool(&test_app, figures, &test_app);
+    rect_tool tool(&test_app, &test_app);
     GLFWwindow* win = glfwGetCurrentContext();
 
     SECTION("tool identification") {
@@ -98,13 +96,13 @@ TEST_CASE("rect_tool behavior and constraints", "[tools][rect_tool]") {
     }
 
     SECTION("mouse interaction pushes new rectangle") {
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
         tool.on_mouse_down(0, point(0.0, 0.0));
         tool.on_mouse_move(point(50.0, 60.0));
         tool.on_mouse_up(0, point(100.0, 50.0));
 
-        REQUIRE(figures.size() == 1);
-        figure* created = figures[0];
+        REQUIRE(test_app.get_scene().get_figures().size() == 1);
+        figure* created = test_app.get_scene().get_figures()[0];
         REQUIRE(created->get_type_tag() == "rectangle");
         REQUIRE(created->get_control_points().size() == 4);
 
@@ -118,7 +116,7 @@ TEST_CASE("rect_tool behavior and constraints", "[tools][rect_tool]") {
     }
 
     SECTION("aspect-ratio lock constraint with CTRL key") {
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
         
         // Hold Left Ctrl
         simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_PRESS);
@@ -130,8 +128,8 @@ TEST_CASE("rect_tool behavior and constraints", "[tools][rect_tool]") {
         // Release Left Ctrl
         simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_RELEASE);
 
-        REQUIRE(figures.size() == 1);
-        figure* created = figures[0];
+        REQUIRE(test_app.get_scene().get_figures().size() == 1);
+        figure* created = test_app.get_scene().get_figures()[0];
         auto pts = created->get_control_points();
         
         // Height and width constrained to max(100, 50) = 100
@@ -143,9 +141,8 @@ TEST_CASE("rect_tool behavior and constraints", "[tools][rect_tool]") {
 }
 
 TEST_CASE("ellipse_tool behavior and constraints", "[tools][ellipse_tool]") {
-    std::vector<figure*> figures;
     app& test_app = get_test_app();
-    ellipse_tool tool(&test_app, figures, &test_app);
+    ellipse_tool tool(&test_app, &test_app);
     GLFWwindow* win = glfwGetCurrentContext();
 
     SECTION("tool identification") {
@@ -153,13 +150,13 @@ TEST_CASE("ellipse_tool behavior and constraints", "[tools][ellipse_tool]") {
     }
 
     SECTION("mouse interaction pushes new ellipse") {
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
         tool.on_mouse_down(0, point(0.0, 0.0));
         tool.on_mouse_move(point(50.0, 60.0));
         tool.on_mouse_up(0, point(100.0, 50.0));
 
-        REQUIRE(figures.size() == 1);
-        figure* created = figures[0];
+        REQUIRE(test_app.get_scene().get_figures().size() == 1);
+        figure* created = test_app.get_scene().get_figures()[0];
         REQUIRE(created->get_type_tag() == "ellipse");
         REQUIRE(created->get_control_points().size() == 3);
 
@@ -171,7 +168,7 @@ TEST_CASE("ellipse_tool behavior and constraints", "[tools][ellipse_tool]") {
     }
 
     SECTION("circle lock constraint with CTRL key") {
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
         
         // Hold Right Ctrl
         simulate_glfw_key(win, GLFW_KEY_RIGHT_CONTROL, GLFW_PRESS);
@@ -183,8 +180,8 @@ TEST_CASE("ellipse_tool behavior and constraints", "[tools][ellipse_tool]") {
         // Release Right Ctrl
         simulate_glfw_key(win, GLFW_KEY_RIGHT_CONTROL, GLFW_RELEASE);
 
-        REQUIRE(figures.size() == 1);
-        figure* created = figures[0];
+        REQUIRE(test_app.get_scene().get_figures().size() == 1);
+        figure* created = test_app.get_scene().get_figures()[0];
         auto pts = created->get_control_points();
         
         // Center of square bb (0,0 to 100,100) -> (50,50)
@@ -200,32 +197,31 @@ TEST_CASE("ellipse_tool behavior and constraints", "[tools][ellipse_tool]") {
 }
 
 TEST_CASE("triangle_tool 3-click FSM behavior", "[tools][triangle_tool]") {
-    std::vector<figure*> figures;
     app& test_app = get_test_app();
-    triangle_tool tool(&test_app, figures, &test_app);
+    triangle_tool tool(&test_app, &test_app);
 
     SECTION("tool identification") {
         REQUIRE(tool.get_name() == "triangle_tool");
     }
 
     SECTION("multi-click sequence pushes new triangle") {
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
 
         // First click (state 0 -> 1)
         tool.on_mouse_down(0, point(0.0, 0.0));
         tool.on_mouse_move(point(100.0, 0.0));
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
 
         // Second click (state 1 -> 2)
         tool.on_mouse_down(0, point(100.0, 0.0));
         tool.on_mouse_move(point(50.0, 100.0));
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
 
         // Third click commits (state 2 -> 0)
         tool.on_mouse_down(0, point(50.0, 100.0));
         
-        REQUIRE(figures.size() == 1);
-        figure* created = figures[0];
+        REQUIRE(test_app.get_scene().get_figures().size() == 1);
+        figure* created = test_app.get_scene().get_figures()[0];
         REQUIRE(created->get_type_tag() == "triangle");
         REQUIRE(created->get_control_points().size() == 3);
 
@@ -239,9 +235,8 @@ TEST_CASE("triangle_tool 3-click FSM behavior", "[tools][triangle_tool]") {
 }
 
 TEST_CASE("bezier_tool multi-point drawing and finish trigger", "[tools][bezier_tool]") {
-    std::vector<figure*> figures;
     app& test_app = get_test_app();
-    bezier_tool tool(&test_app, figures, &test_app);
+    bezier_tool tool(&test_app, &test_app);
     GLFWwindow* win = glfwGetCurrentContext();
 
     SECTION("tool identification") {
@@ -249,7 +244,7 @@ TEST_CASE("bezier_tool multi-point drawing and finish trigger", "[tools][bezier_
     }
 
     SECTION("multi-click with enter trigger pushes bezier curve") {
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
 
         // 1st click
         tool.on_mouse_down(0, point(0.0, 0.0));
@@ -265,14 +260,14 @@ TEST_CASE("bezier_tool multi-point drawing and finish trigger", "[tools][bezier_
         tool.on_mouse_down(0, point(100.0, 0.0));
         tool.on_mouse_up(0, point(100.0, 0.0));
 
-        REQUIRE(figures.empty());
+        REQUIRE(test_app.get_scene().get_figures().empty());
 
         // Press Enter to complete drawing
         simulate_glfw_key(win, GLFW_KEY_ENTER, GLFW_PRESS);
         tool.on_key_down(GLFW_KEY_ENTER);
 
-        REQUIRE(figures.size() == 1);
-        figure* created = figures[0];
+        REQUIRE(test_app.get_scene().get_figures().size() == 1);
+        figure* created = test_app.get_scene().get_figures()[0];
         REQUIRE(created->get_type_tag() == "bezier");
         REQUIRE(created->get_control_points().size() == 3);
 
@@ -290,9 +285,8 @@ TEST_CASE("bezier_tool multi-point drawing and finish trigger", "[tools][bezier_
 }
 
 TEST_CASE("selection_tool complex scenarios and FSM", "[tools][selection]") {
-    std::vector<figure*> figures;
     app& test_app = get_test_app();
-    selection_tool tool(&test_app, figures, &test_app);
+    selection_tool tool(&test_app, &test_app);
 
     SECTION("overlapping z-order selection (select topmost)") {
         // Clear global scene

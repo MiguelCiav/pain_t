@@ -25,13 +25,12 @@ void app::setup() {
   clear(background_color);
   std::cout << "pain_t engine initialized successfully." << std::endl;
 
-  std::vector<figure*>& figs = main_scene.get_figures();
-  l_tool = new line_tool(this, figs, this);
-  r_tool = new rect_tool(this, figs, this);
-  t_tool = new triangle_tool(this, figs, this);
-  e_tool = new ellipse_tool(this, figs, this);
-  b_tool = new bezier_tool(this, figs, this);
-  s_tool = new selection_tool(this, figs, this);
+  l_tool = new line_tool(this, this);
+  r_tool = new rect_tool(this, this);
+  t_tool = new triangle_tool(this, this);
+  e_tool = new ellipse_tool(this, this);
+  b_tool = new bezier_tool(this, this);
+  s_tool = new selection_tool(this, this);
   active_tool = l_tool;
 }
 

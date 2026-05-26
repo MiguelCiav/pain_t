@@ -5,9 +5,8 @@
 #include "../scene/app.h"
 #include <string>
 
-line_tool::line_tool(engine_2d *engine, std::vector<figure *> &figures,
-                     app *application)
-    : i_tool(engine, figures, application) {}
+line_tool::line_tool(engine_2d *engine, app *application)
+    : i_tool(engine, application) {}
 
 void line_tool::on_mouse_down(int button, point p) {
   is_drawing = true;
@@ -33,7 +32,7 @@ void line_tool::on_mouse_up(int button, point p) {
   }
   figure *new_line = new line(starting_point, ending_point,
                               application->get_border_color(), engine);
-  scene_figures.push_back(new_line);
+  application->get_scene().add_figure(new_line);
 }
 
 void line_tool::on_key_down(int key) {}

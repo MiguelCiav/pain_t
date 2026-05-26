@@ -6,9 +6,8 @@
 #include "../scene/app.h"
 #include <string>
 
-triangle_tool::triangle_tool(engine_2d *engine, std::vector<figure *> &figures,
-                             app *application)
-    : i_tool(engine, figures, application) {}
+triangle_tool::triangle_tool(engine_2d *engine, app *application)
+    : i_tool(engine, application) {}
 
 void triangle_tool::on_mouse_down(int button, point p) {
   if (state == 0) {
@@ -25,7 +24,7 @@ void triangle_tool::on_mouse_down(int button, point p) {
     std::vector<point> tri_points = {p1, p2, p3};
     figure *new_tri = new triangle(tri_points, application->get_border_color(),
                                    application->get_fill_color(), true, engine);
-    scene_figures.push_back(new_tri);
+    application->get_scene().add_figure(new_tri);
   }
 }
 

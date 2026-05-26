@@ -6,9 +6,8 @@
 #include <stdexcept>
 #include <string>
 
-rect_tool::rect_tool(engine_2d *engine, std::vector<figure *> &figures,
-                     app *application)
-    : i_tool(engine, figures, application) {}
+rect_tool::rect_tool(engine_2d *engine, app *application)
+    : i_tool(engine, application) {}
 
 void rect_tool::on_mouse_down(int button, point p) {
   is_drawing = true;
@@ -48,7 +47,7 @@ void rect_tool::on_mouse_up(int button, point p) {
   figure *new_rect = new rectangle(starting_point, adjusted_end,
                                    application->get_border_color(),
                                    application->get_fill_color(), true, engine);
-  scene_figures.push_back(new_rect);
+  application->get_scene().add_figure(new_rect);
 }
 
 void rect_tool::on_key_down(int key) {}

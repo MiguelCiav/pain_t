@@ -9,8 +9,7 @@ class app;
 
 class selection_tool : public i_tool {
 public:
-  selection_tool(engine_2d *engine, std::vector<figure *> &figures,
-                 app *application);
+  selection_tool(engine_2d *engine, app *application);
 
   void on_mouse_down(int button, point p) override;
   void on_mouse_move(point p) override;

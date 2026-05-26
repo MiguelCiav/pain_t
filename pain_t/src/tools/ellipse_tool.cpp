@@ -6,9 +6,8 @@
 #include "../scene/app.h"
 #include <string>
 
-ellipse_tool::ellipse_tool(engine_2d *engine, std::vector<figure *> &figures,
-                           app *application)
-    : i_tool(engine, figures, application) {}
+ellipse_tool::ellipse_tool(engine_2d *engine, app *application)
+    : i_tool(engine, application) {}
 
 void ellipse_tool::on_mouse_down(int button, point p) {
   is_drawing = true;
@@ -45,7 +44,7 @@ void ellipse_tool::on_mouse_up(int button, point p) {
   figure *new_ellipse =
       new ellipse(starting_point, adjusted_end, application->get_border_color(),
                   application->get_fill_color(), true, engine);
-  scene_figures.push_back(new_ellipse);
+  application->get_scene().add_figure(new_ellipse);
 }
 
 void ellipse_tool::on_key_down(int key) {}

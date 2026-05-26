@@ -1,9 +1,7 @@
 #include "i_tool.h"
 #include <stdexcept>
 
-i_tool::i_tool(engine_2d *engine, std::vector<figure *> &scene_figures,
-               app *application)
-    : scene_figures(scene_figures) {
+i_tool::i_tool(engine_2d *engine, app *application) {
   if (engine == nullptr) {
     throw std::logic_error("Cannot create a tool without an engine");
   }
