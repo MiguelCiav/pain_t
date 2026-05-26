@@ -104,6 +104,12 @@ void app::draw_ui() {
 
   ImGui::Separator();
 
+  if (ImGui::Button("Clear Scene")) {
+    main_scene.clear();
+  }
+
+  ImGui::Separator();
+
   ImGui::Text("Border Color");
   color border = main_scene.get_active_border_color();
   if (ImGui::ColorEdit3("##Border Color", &border.r)) {

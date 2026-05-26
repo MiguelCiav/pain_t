@@ -349,4 +349,24 @@ TEST_CASE("selection_tool complex scenarios and FSM", "[tools][selection]") {
     }
 }
 
+TEST_CASE("scene clearing logic", "[scene]") {
+    app& test_app = get_test_app();
+    scene& sc = test_app.get_scene();
+
+    REQUIRE(sc.get_figures().empty());
+    REQUIRE(sc.get_selected_figure() == nullptr);
+
+    figure* rectA = new rectangle(point(0,0), point(100,100), color(1,0,0), color(0,1,0), true, &test_app);
+    sc.add_figure(rectA);
+    sc.select(rectA);
+
+    REQUIRE(sc.get_figures().size() == 1);
+    REQUIRE(sc.get_selected_figure() == rectA);
+
+    sc.clear();
+
+    REQUIRE(sc.get_figures().empty());
+    REQUIRE(sc.get_selected_figure() == nullptr);
+}
+
 

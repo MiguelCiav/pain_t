@@ -16,6 +16,7 @@ public:
     ~scene();
 
     void add_figure(figure* f);
+    void clear();
     const std::vector<figure*>& get_figures() const;
     std::vector<figure*>& get_figures();
 

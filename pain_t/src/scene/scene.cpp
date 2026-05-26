@@ -11,6 +11,14 @@ void scene::add_figure(figure* f) {
     figures.push_back(f);
 }
 
+void scene::clear() {
+    deselect();
+    for (figure* fig : figures) {
+        delete fig;
+    }
+    figures.clear();
+}
+
 const std::vector<figure*>& scene::get_figures() const {
     return figures;
 }
