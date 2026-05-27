@@ -12,17 +12,7 @@ selection_tool::selection_tool(engine_2d *engine, app *application)
     : i_tool(engine, application) {}
 
 void selection_tool::on_mouse_down(int button, point p) {
-  const std::vector<figure*>& all_figs = application->get_scene().get_figures();
-  
-  figure* clicked = nullptr;
-  // Iterate from top to bottom
-  for (int i = static_cast<int>(all_figs.size()) - 1; i >= 0; --i) {
-    figure* fig = all_figs[i];
-    if (fig->inside(p)) {
-      clicked = fig;
-      break;
-    }
-  }
+  figure *clicked = application->get_scene().query(p);
 
   if (clicked) {
     application->get_scene().select(clicked);
@@ -38,11 +28,11 @@ void selection_tool::on_mouse_up(int button, point p) {}
 void selection_tool::on_key_down(int key) {}
 
 void selection_tool::draw_preview() {
-  figure* selected = application->get_scene().get_selected_figure();
+  figure *selected = application->get_scene().get_selected_figure();
   if (selected) {
     bounding_box bb = selected->get_bounding_box();
     std::vector<point> pts = bb.get_bounding_box();
-    
+
     // Draw bounding box border in dashed or solid gray
     color selection_color(0.5f, 0.5f, 0.5f);
     rasterizer::line::draw(engine, pts[0], pts[1], selection_color);

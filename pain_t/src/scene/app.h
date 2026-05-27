@@ -2,7 +2,6 @@
 #include "../engine/engine_2d.h"
 #include "GLFW/glfw3.h"
 #include "scene.h"
-#include <vector>
 
 // Forward declarations
 class figure;
@@ -18,6 +17,7 @@ private:
   i_tool *e_tool = nullptr;
   i_tool *b_tool = nullptr;
   i_tool *s_tool = nullptr;
+  bool show_quad_tree = false;
 
 public:
   app(int width = 800, int height = 600);
@@ -30,7 +30,7 @@ public:
   void on_mouse_move(double x, double y) override;
   void update(float deltaTime) override;
   void draw_ui() override;
-  scene& get_scene() { return main_scene; }
+  scene &get_scene() { return main_scene; }
   bool is_ctrl_pressed() const {
     return is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||
            is_key_pressed(GLFW_KEY_RIGHT_CONTROL);

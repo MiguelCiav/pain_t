@@ -1,74 +1,164 @@
 #include "scene.h"
 #include "../engine/engine_2d.h"
+#include "quad_tree.h"
+#include <algorithm>
+#include <stdexcept>
+#include <unordered_set>
 
 scene::~scene() {
-    for (figure* fig : figures) {
-        delete fig;
-    }
+  for (figure *fig : figures) {
+    delete fig;
+  }
+  delete tree;
 }
 
-void scene::add_figure(figure* f) {
-    figures.push_back(f);
+void scene::init_tree(double width, double height) {
+  if (width <= 0 || height <= 0) {
+    throw std::invalid_argument(
+        "Scene width and height must be greater than zero");
+  }
+  if (tree) {
+    delete tree;
+  }
+  tree = new quad_tree(bounding_box(point(0, 0), point(width, 0),
+                                    point(width, height), point(0, height)),
+                       0);
+  for (figure *fig : figures) {
+    tree->insert(fig);
+  }
+}
+
+void scene::add_figure(figure *f) {
+  if (!f) {
+    throw std::logic_error("Cannot add a nullptr figure to scene");
+  }
+  if (std::find(figures.begin(), figures.end(), f) != figures.end()) {
+    throw std::logic_error("Figure is already present in the scene");
+  }
+  figures.push_back(f);
+  if (tree) {
+    tree->insert(f);
+  }
+}
+
+void scene::remove_figure(figure *f) {
+  if (!f) {
+    throw std::logic_error("Cannot remove a nullptr figure from scene");
+  }
+  auto it = std::find(figures.begin(), figures.end(), f);
+  if (it == figures.end()) {
+    throw std::logic_error(
+        "Cannot remove a figure that is not present in the scene");
+  }
+  figures.erase(it);
+  if (tree) {
+    tree->remove(f);
+  }
+}
+
+void scene::notify_figure_moved(figure *f) {
+  if (!f) {
+    throw std::logic_error("Cannot notify from a nullptr figure on scene");
+  }
+  if (std::find(figures.begin(), figures.end(), f) == figures.end()) {
+    throw std::logic_error(
+        "Cannot notify moved for a figure not present in the scene");
+  }
+  if (tree) {
+    tree->remove(f);
+    tree->insert(f);
+  }
 }
 
 void scene::clear() {
-    deselect();
-    for (figure* fig : figures) {
-        delete fig;
-    }
-    figures.clear();
+  deselect();
+  for (figure *fig : figures) {
+    delete fig;
+  }
+  figures.clear();
+  if (tree) {
+    tree->clear();
+  }
 }
 
 void scene::reorder_figures(int source_idx, int target_idx) {
-    if (source_idx < 0 || source_idx >= static_cast<int>(figures.size()) ||
-        target_idx < 0 || target_idx >= static_cast<int>(figures.size()) ||
-        source_idx == target_idx) {
-        return;
-    }
-    figure* temp = figures[source_idx];
-    figures.erase(figures.begin() + source_idx);
-    figures.insert(figures.begin() + target_idx, temp);
+  if (source_idx < 0 || source_idx >= static_cast<int>(figures.size())) {
+    throw std::out_of_range("Source index is out of bounds");
+  }
+  if (target_idx < 0 || target_idx >= static_cast<int>(figures.size())) {
+    throw std::out_of_range("Target index is out of bounds");
+  }
+  if (source_idx == target_idx) {
+    return;
+  }
+  figure *temp = figures[source_idx];
+  figures.erase(figures.begin() + source_idx);
+  figures.insert(figures.begin() + target_idx, temp);
 }
 
-const std::vector<figure*>& scene::get_figures() const {
-    return figures;
-}
+const std::vector<figure *> &scene::get_figures() const { return figures; }
 
-std::vector<figure*>& scene::get_figures() {
-    return figures;
-}
+std::vector<figure *> &scene::get_figures() { return figures; }
 
-void scene::select(figure* f) {
-    deselect();
-    selected_figure = f;
-    if (selected_figure) {
-        selected_figure->select();
-    }
+void scene::select(figure *f) {
+  if (f && std::find(figures.begin(), figures.end(), f) == figures.end()) {
+    throw std::logic_error("Cannot select a figure that is not in the scene");
+  }
+  deselect();
+  selected_figure = f;
+  if (selected_figure) {
+    selected_figure->select();
+  }
 }
 
 void scene::deselect() {
-    if (selected_figure) {
-        selected_figure->unselect();
-    }
-    selected_figure = nullptr;
+  if (selected_figure) {
+    selected_figure->unselect();
+  }
+  selected_figure = nullptr;
 }
 
-figure* scene::get_selected_figure() const {
-    return selected_figure;
-}
+figure *scene::get_selected_figure() const { return selected_figure; }
 
-figure* scene::query_at(point click) const {
-    // Iterate from topmost to bottommost (reverse order)
+figure *scene::query(point click) const {
+  if (!tree) {
     for (auto it = figures.rbegin(); it != figures.rend(); ++it) {
-        if ((*it)->inside(click)) {
-            return *it;
-        }
+      if ((*it)->inside(click)) {
+        return *it;
+      }
     }
     return nullptr;
+  }
+
+  bounding_box click_box(
+      point(click.x - CLICK_TOLERANCE, click.y - CLICK_TOLERANCE),
+      point(click.x + CLICK_TOLERANCE, click.y - CLICK_TOLERANCE),
+      point(click.x + CLICK_TOLERANCE, click.y + CLICK_TOLERANCE),
+      point(click.x - CLICK_TOLERANCE, click.y + CLICK_TOLERANCE));
+
+  std::unordered_set<figure *> candidates = tree->query(click_box);
+
+  if (candidates.empty()) {
+    return nullptr;
+  }
+
+  for (auto it = figures.rbegin(); it != figures.rend(); ++it) {
+    if (candidates.count(*it) > 0) {
+      return *it;
+    }
+  }
+
+  return nullptr;
 }
 
 void scene::draw_all(engine_2d *engine) const {
-    for (figure *fig : figures) {
-        fig->draw();
-    }
+  for (figure *fig : figures) {
+    fig->draw();
+  }
+}
+
+void scene::draw_quad_tree(engine_2d *engine) const {
+  if (tree) {
+    tree->draw(engine);
+  }
 }

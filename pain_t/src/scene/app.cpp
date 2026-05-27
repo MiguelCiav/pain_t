@@ -25,6 +25,8 @@ void app::setup() {
   clear(main_scene.get_background_color());
   std::cout << "pain_t engine initialized successfully." << std::endl;
 
+  main_scene.init_tree(get_width(), get_height());
+
   l_tool = new line_tool(this, this);
   r_tool = new rect_tool(this, this);
   t_tool = new triangle_tool(this, this);
@@ -61,6 +63,10 @@ void app::on_mouse_move(double x, double y) {
 void app::update(float deltaTime) {
   clear(main_scene.get_background_color());
   main_scene.draw_all(this);
+
+  if (show_quad_tree) {
+    main_scene.draw_quad_tree(this);
+  }
 
   if (active_tool) {
     active_tool->draw_preview();
@@ -108,6 +114,8 @@ void app::draw_ui() {
     main_scene.clear();
   }
 
+  ImGui::Checkbox("Show QuadTree (Q)", &show_quad_tree);
+
   ImGui::Separator();
 
   ImGui::Text("Border Color");
@@ -133,14 +141,16 @@ void app::draw_ui() {
   ImGui::TextDisabled("Drag & Drop to reorder");
 
   ImGui::BeginChild("LayersList", ImVec2(0, 150), true);
-  std::vector<figure*>& figures = main_scene.get_figures();
+  std::vector<figure *> &figures = main_scene.get_figures();
   int size = static_cast<int>(figures.size());
 
   for (int n = 0; n < size; n++) {
     int fig_idx = size - 1 - n;
-    figure* fig = figures[fig_idx];
+    figure *fig = figures[fig_idx];
 
-    std::string item_label = std::to_string(n + 1) + ". " + fig->get_type_tag() + "##" + std::to_string(reinterpret_cast<uintptr_t>(fig));
+    std::string item_label = std::to_string(n + 1) + ". " +
+                             fig->get_type_tag() + "##" +
+                             std::to_string(reinterpret_cast<uintptr_t>(fig));
     bool is_selected = (fig == main_scene.get_selected_figure());
 
     if (ImGui::Selectable(item_label.c_str(), is_selected)) {
@@ -154,9 +164,10 @@ void app::draw_ui() {
     }
 
     if (ImGui::BeginDragDropTarget()) {
-      if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_FIGURE_INDEX")) {
+      if (const ImGuiPayload *payload =
+              ImGui::AcceptDragDropPayload("DND_FIGURE_INDEX")) {
         IM_ASSERT(payload->DataSize == sizeof(int));
-        int source_n = *(const int*)payload->Data;
+        int source_n = *(const int *)payload->Data;
         int target_n = n;
 
         int source_idx = size - 1 - source_n;

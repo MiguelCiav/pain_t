@@ -39,7 +39,7 @@ classDiagram
         + notify_figure_moved(f: figure*)
         + get_all_figures() vector~shared_ptr~figure~~
         + clear_all_figures()
-        + query_at(x: double, y: double) figure*
+        + query(x: double, y: double) figure*
         + select(f: figure*)
         + deselect()
         + get_selected_figure() figure*

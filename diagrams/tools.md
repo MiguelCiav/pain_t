@@ -109,7 +109,7 @@ classDiagram
 
 pain_t delegates all input events here.
 Each tool reads and mutates scene only through
-scene's public API (query_at, select, execute).
+scene's public API (query, select, execute).
 reset() is called by pain_t::set_active_tool() before
 the old tool is replaced — clears preview and resets
 internal phase back to its default state.
