@@ -128,5 +128,46 @@ void app::draw_ui() {
     main_scene.set_background_color(bg);
   }
 
+  ImGui::Separator();
+  ImGui::Text("Layers (Z-Index)");
+  ImGui::TextDisabled("Drag & Drop to reorder");
+
+  ImGui::BeginChild("LayersList", ImVec2(0, 150), true);
+  std::vector<figure*>& figures = main_scene.get_figures();
+  int size = static_cast<int>(figures.size());
+
+  for (int n = 0; n < size; n++) {
+    int fig_idx = size - 1 - n;
+    figure* fig = figures[fig_idx];
+
+    std::string item_label = std::to_string(n + 1) + ". " + fig->get_type_tag() + "##" + std::to_string(reinterpret_cast<uintptr_t>(fig));
+    bool is_selected = (fig == main_scene.get_selected_figure());
+
+    if (ImGui::Selectable(item_label.c_str(), is_selected)) {
+      main_scene.select(fig);
+    }
+
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+      ImGui::SetDragDropPayload("DND_FIGURE_INDEX", &n, sizeof(int));
+      ImGui::Text("Move %s", fig->get_type_tag().c_str());
+      ImGui::EndDragDropSource();
+    }
+
+    if (ImGui::BeginDragDropTarget()) {
+      if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_FIGURE_INDEX")) {
+        IM_ASSERT(payload->DataSize == sizeof(int));
+        int source_n = *(const int*)payload->Data;
+        int target_n = n;
+
+        int source_idx = size - 1 - source_n;
+        int target_idx = size - 1 - target_n;
+
+        main_scene.reorder_figures(source_idx, target_idx);
+      }
+      ImGui::EndDragDropTarget();
+    }
+  }
+  ImGui::EndChild();
+
   ImGui::End();
 }

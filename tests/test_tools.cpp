@@ -369,4 +369,32 @@ TEST_CASE("scene clearing logic", "[scene]") {
     REQUIRE(sc.get_selected_figure() == nullptr);
 }
 
+TEST_CASE("scene layers and z-index reordering", "[scene][layers]") {
+    app& test_app = get_test_app();
+    scene& sc = test_app.get_scene();
+
+    figure* rectA = new rectangle(point(0,0), point(100,100), color(1,0,0), color(0,1,0), true, &test_app);
+    sc.add_figure(rectA);
+
+    figure* rectB = new rectangle(point(50,50), point(150,150), color(0,0,1), color(0,1,0), true, &test_app);
+    sc.add_figure(rectB);
+
+    REQUIRE(sc.get_figures().size() == 2);
+    REQUIRE(sc.get_figures()[0] == rectA);
+    REQUIRE(sc.get_figures()[1] == rectB);
+
+    REQUIRE(sc.query_at(point(75, 75)) == rectB);
+
+    sc.reorder_figures(1, 0);
+
+    REQUIRE(sc.get_figures().size() == 2);
+    REQUIRE(sc.get_figures()[0] == rectB);
+    REQUIRE(sc.get_figures()[1] == rectA);
+
+    REQUIRE(sc.query_at(point(75, 75)) == rectA);
+
+    delete rectA;
+    delete rectB;
+}
+
 

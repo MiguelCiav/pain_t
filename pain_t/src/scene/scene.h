@@ -17,6 +17,7 @@ public:
 
     void add_figure(figure* f);
     void clear();
+    void reorder_figures(int source_idx, int target_idx);
     const std::vector<figure*>& get_figures() const;
     std::vector<figure*>& get_figures();
 

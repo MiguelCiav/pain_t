@@ -19,6 +19,17 @@ void scene::clear() {
     figures.clear();
 }
 
+void scene::reorder_figures(int source_idx, int target_idx) {
+    if (source_idx < 0 || source_idx >= static_cast<int>(figures.size()) ||
+        target_idx < 0 || target_idx >= static_cast<int>(figures.size()) ||
+        source_idx == target_idx) {
+        return;
+    }
+    figure* temp = figures[source_idx];
+    figures.erase(figures.begin() + source_idx);
+    figures.insert(figures.begin() + target_idx, temp);
+}
+
 const std::vector<figure*>& scene::get_figures() const {
     return figures;
 }

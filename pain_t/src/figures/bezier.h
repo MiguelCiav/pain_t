@@ -6,8 +6,12 @@
 #include <string>
 
 class engine_2d;
+const int BEZIER_BOX_TOLERANCE = 5;
 
 class bezier : public figure {
+private:
+  std::vector<point> get_render_points() const;
+
 public:
   // CONSTRUCTORS
   bezier() = default;
