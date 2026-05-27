@@ -399,3 +399,175 @@ TEST_CASE("scene layers and z-index reordering", "[scene][layers]") {
   delete rectA;
   delete rectB;
 }
+
+TEST_CASE("selection_tool center cross dragging", "[tools][selection]") {
+  app &test_app = get_test_app();
+  selection_tool tool(&test_app, &test_app);
+  scene &sc = test_app.get_scene();
+
+  SECTION("dragging moves figure when clicking on center cross") {
+    sc.get_figures().clear();
+    sc.deselect();
+
+    // Create a rectangle from (0, 0) to (100, 100), center is (50, 50)
+    figure *rect = new rectangle(point(0, 0), point(100, 100), color(1, 0, 0),
+                                 color(0, 1, 0), true, &test_app);
+    sc.add_figure(rect);
+
+    // Initial select
+    tool.on_mouse_down(0, point(50, 50));
+    REQUIRE(sc.get_selected_figure() == rect);
+
+    // Click down exactly at center cross (50, 50)
+    tool.on_mouse_down(0, point(50, 50));
+
+    // Drag to (60, 70)
+    tool.on_mouse_move(point(60, 70));
+
+    // Release click
+    tool.on_mouse_up(0, point(60, 70));
+
+    // The center should have shifted by (10, 20)
+    point new_center = rect->get_center();
+    REQUIRE(new_center.x == 60.0);
+    REQUIRE(new_center.y == 70.0);
+
+    sc.deselect();
+    delete rect;
+  }
+
+  SECTION("clicking outside cross tolerance does not drag figure") {
+    sc.get_figures().clear();
+    sc.deselect();
+
+    // Create a rectangle from (0, 0) to (100, 100), center is (50, 50)
+    figure *rect = new rectangle(point(0, 0), point(100, 100), color(1, 0, 0),
+                                 color(0, 1, 0), true, &test_app);
+    sc.add_figure(rect);
+
+    // Initial select
+    tool.on_mouse_down(0, point(50, 50));
+    REQUIRE(sc.get_selected_figure() == rect);
+
+    // Click down outside cross tolerance but inside the figure, e.g. at (20, 20)
+    // Center is (50,50). Distance to (20,20) is sqrt(30^2 + 30^2) = 42.4 > tolerance (6)
+    tool.on_mouse_down(0, point(20, 20));
+
+    // Drag to (30, 40)
+    tool.on_mouse_move(point(30, 40));
+
+    tool.on_mouse_up(0, point(30, 40));
+
+    // The figure center should NOT have shifted (it remained at 50, 50)
+    point center = rect->get_center();
+    REQUIRE(center.x == 50.0);
+    REQUIRE(center.y == 50.0);
+
+    sc.deselect();
+    delete rect;
+  }
+}
+
+TEST_CASE("selection_tool control point deformation", "[tools][selection]") {
+  app &test_app = get_test_app();
+  selection_tool tool(&test_app, &test_app);
+  scene &sc = test_app.get_scene();
+
+  SECTION("dragging a control point deforms the figure") {
+    sc.get_figures().clear();
+    sc.deselect();
+
+    // Create a rectangle from (0, 0) to (100, 100).
+    // Bounding box corners: pts[0] = (0,0), pts[1] = (100,0), pts[2] = (100,100), pts[3] = (0,100)
+    figure *rect = new rectangle(point(0, 0), point(100, 100), color(1, 0, 0),
+                                 color(0, 1, 0), true, &test_app);
+    sc.add_figure(rect);
+
+    // Initial select
+    tool.on_mouse_down(0, point(50, 50));
+    REQUIRE(sc.get_selected_figure() == rect);
+
+    // Click down exactly at control point 0 (0, 0)
+    tool.on_mouse_down(0, point(0, 0));
+
+    // Drag to (15, -20)
+    tool.on_mouse_move(point(15, -20));
+
+    // Release click
+    tool.on_mouse_up(0, point(15, -20));
+
+    // Control point 0 should have shifted by (15, -20)
+    point deformed_pt = rect->get_control_points()[0].get_position();
+    REQUIRE(deformed_pt.x == 15.0);
+    REQUIRE(deformed_pt.y == -20.0);
+
+    // Control point 1 should remain unchanged at (100, 0)
+    point unchanged_pt = rect->get_control_points()[1].get_position();
+    REQUIRE(unchanged_pt.x == 100.0);
+    REQUIRE(unchanged_pt.y == 0.0);
+
+    sc.deselect();
+    delete rect;
+  }
+}
+
+TEST_CASE("selection_tool special figure handling", "[tools][selection]") {
+  app &test_app = get_test_app();
+  selection_tool tool(&test_app, &test_app);
+  scene &sc = test_app.get_scene();
+
+  SECTION("ellipse height and width handles are constrained and center cannot be deformed") {
+    sc.get_figures().clear();
+    sc.deselect();
+
+    // Create an ellipse from (0, 0) to (100, 100).
+    // Bounding Box center is (50, 50).
+    // Control points: cp[0] = center (50, 50), cp[1] = height handle (50, 0), cp[2] = width handle (100, 50)
+    figure *ell = new ellipse(point(0, 0), point(100, 100), color(1, 0, 0),
+                              color(0, 1, 0), true, &test_app);
+    sc.add_figure(ell);
+
+    // Select ellipse
+    tool.on_mouse_down(0, point(50, 50));
+    REQUIRE(sc.get_selected_figure() == ell);
+
+    // 1. Verify that clicking on center control point (50, 50) initiates center cross dragging, not deformation!
+    tool.on_mouse_down(0, point(50, 50));
+    tool.on_mouse_move(point(60, 70));
+    tool.on_mouse_up(0, point(60, 70));
+
+    // Verify it moved center and all points shifted (translation, center at 60, 70)
+    REQUIRE(ell->get_control_points()[0].get_x() == 60.0);
+    REQUIRE(ell->get_control_points()[0].get_y() == 70.0);
+
+    // 2. Drag height handle (index 1), currently at (60, 20) since it shifted by (10, 20)
+    REQUIRE(ell->get_control_points()[1].get_x() == 60.0);
+    REQUIRE(ell->get_control_points()[1].get_y() == 20.0);
+
+    // Click at height handle and drag to (75, 45). It should only update Y coordinate to 45, keeping X locked to center X (60)!
+    tool.on_mouse_down(0, point(60, 20));
+    tool.on_mouse_move(point(75, 45));
+    tool.on_mouse_up(0, point(75, 45));
+
+    REQUIRE(ell->get_control_points()[1].get_x() == 60.0); // locked to center X
+    REQUIRE(ell->get_control_points()[1].get_y() == 45.0); // shifted vertically
+
+    // 3. Drag width handle (index 2), currently at (110, 70) since it shifted by (10, 20)
+    REQUIRE(ell->get_control_points()[2].get_x() == 110.0);
+    REQUIRE(ell->get_control_points()[2].get_y() == 70.0);
+
+    // Click at width handle and drag to (125, 95). It should only update X coordinate to 125, keeping Y locked to center Y (70)!
+    tool.on_mouse_down(0, point(110, 70));
+    tool.on_mouse_move(point(125, 95));
+    tool.on_mouse_up(0, point(125, 95));
+
+    REQUIRE(ell->get_control_points()[2].get_x() == 125.0); // shifted horizontally
+    REQUIRE(ell->get_control_points()[2].get_y() == 70.0);  // locked to center Y
+
+    sc.deselect();
+    delete ell;
+  }
+}
+
+
+

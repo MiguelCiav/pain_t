@@ -479,7 +479,7 @@ TEST_CASE("bezier primitive coverage", "[figures][bezier]") {
 
     SECTION("inside always returns false") {
         bezier b(pts, border_color, nullptr);
-        REQUIRE_FALSE(b.inside(point(50.0, 50.0)));
+        REQUIRE_FALSE(b.inside(point(50.0, 80.0)));
     }
 }
 

@@ -148,9 +148,9 @@ void app::draw_ui() {
     int fig_idx = size - 1 - n;
     figure *fig = figures[fig_idx];
 
-    std::string item_label = std::to_string(n + 1) + ". " +
-                             fig->get_type_tag() + "##" +
-                             std::to_string(reinterpret_cast<uintptr_t>(fig));
+    std::string item_label =
+        std::to_string(n + 1) + ". " + fig->get_type_tag() + "##" +
+        std::to_string(reinterpret_cast<unsigned long>(fig));
     bool is_selected = (fig == main_scene.get_selected_figure());
 
     if (ImGui::Selectable(item_label.c_str(), is_selected)) {

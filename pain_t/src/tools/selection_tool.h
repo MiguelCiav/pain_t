@@ -17,4 +17,11 @@ public:
   void on_key_down(int key) override;
   void draw_preview() override;
   std::string get_name() override;
+
+private:
+  bool is_dragging = false;
+  point last_mouse_point;
+  bool is_deforming = false;
+  int active_control_point_idx = -1;
 };
+
