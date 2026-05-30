@@ -21,23 +21,11 @@ void quad_tree::create_children() {
 bool quad_tree::intersects(bounding_box box) const {
   std::vector<point> this_pts = this->bounds.get_bounding_box();
   std::vector<point> other_pts = box.get_bounding_box();
-
   if (this_pts.size() < 4 || other_pts.size() < 4) {
     return false;
   }
-
-  double this_min_x = this_pts[0].x;
-  double this_max_x = this_pts[2].x;
-  double this_min_y = this_pts[0].y;
-  double this_max_y = this_pts[2].y;
-
-  double other_min_x = other_pts[0].x;
-  double other_max_x = other_pts[2].x;
-  double other_min_y = other_pts[0].y;
-  double other_max_y = other_pts[2].y;
-
-  return (this_min_x <= other_max_x && this_max_x >= other_min_x &&
-          this_min_y <= other_max_y && this_max_y >= other_min_y);
+  return (this_pts[0].x <= other_pts[2].x && this_pts[2].x >= other_pts[0].x &&
+          this_pts[0].y <= other_pts[2].y && this_pts[2].y >= other_pts[0].y);
 }
 
 void quad_tree::push_elements() {
@@ -59,22 +47,26 @@ void quad_tree::insert(figure *fig) {
     this->elements.push_back(fig);
     return;
   }
-  if (this->is_leaf() && elements.size() < ELEMENTS_LIMIT) {
+  if (this->is_leaf() && this->elements.size() < ELEMENTS_LIMIT) {
     this->elements.push_back(fig);
+    if(this->elements.size() >= ELEMENTS_LIMIT) {
+      this->create_children();
+      this->push_elements();
+    }
     return;
   }
-  if (this->is_leaf()) {
-    this->create_children();
-    this->push_elements();
-  }
-  if (children[0]->intersects(fig->get_bounding_box()))
+  if (children[0]->intersects(fig->get_bounding_box())){
     children[0]->insert(fig);
-  if (children[1]->intersects(fig->get_bounding_box()))
+  }
+  if (children[1]->intersects(fig->get_bounding_box())){
     children[1]->insert(fig);
-  if (children[2]->intersects(fig->get_bounding_box()))
+  }
+  if (children[2]->intersects(fig->get_bounding_box())){
     children[2]->insert(fig);
-  if (children[3]->intersects(fig->get_bounding_box()))
+  }
+  if (children[3]->intersects(fig->get_bounding_box())){
     children[3]->insert(fig);
+  }
 }
 
 void quad_tree::clear() {

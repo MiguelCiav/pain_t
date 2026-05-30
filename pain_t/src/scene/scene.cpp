@@ -52,7 +52,10 @@ void scene::remove_figure(figure *f) {
   }
   figures.erase(it);
   if (tree) {
-    tree->remove(f);
+    tree->clear();
+    for (figure *fig : figures) {
+      tree->insert(fig);
+    }
   }
 }
 
@@ -65,8 +68,10 @@ void scene::notify_figure_moved(figure *f) {
         "Cannot notify moved for a figure not present in the scene");
   }
   if (tree) {
-    tree->remove(f);
-    tree->insert(f);
+    tree->clear();
+    for (figure *fig : figures) {
+      tree->insert(fig);
+    }
   }
 }
 
