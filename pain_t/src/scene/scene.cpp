@@ -1,5 +1,7 @@
 #include "scene.h"
 #include "../engine/engine_2d.h"
+#include "commands/command_history.h"
+#include "commands/i_command.h"
 #include "quad_tree.h"
 #include <algorithm>
 #include <stdexcept>
@@ -154,4 +156,22 @@ void scene::draw_quad_tree(engine_2d *engine) const {
   if (tree) {
     tree->draw(engine);
   }
+}
+
+void scene::undo() {
+  if (history.can_undo())
+    history.undo();
+}
+
+void scene::redo() {
+  if (history.can_redo())
+    history.redo();
+}
+
+void scene::execute(i_command *cmd) {
+  if (!cmd) {
+    throw std::logic_error("Can't execute a null command");
+  }
+  cmd->execute();
+  history.add(cmd);
 }

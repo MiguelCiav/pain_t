@@ -8,6 +8,7 @@
 #include "../tools/rect_tool.h"
 #include "../tools/selection_tool.h"
 #include "../tools/triangle_tool.h"
+#include "scene/scene.h"
 #include <iostream>
 
 app::app(int width, int height) : engine_2d(width, height, "pain_t") {}
@@ -107,6 +108,14 @@ void app::draw_ui() {
 
   if (ImGui::Button("Clear Scene")) {
     main_scene.clear();
+  }
+
+  if (ImGui::Button("undo")) {
+    main_scene.undo();
+  }
+
+  if (ImGui::Button("redo")) {
+    main_scene.redo();
   }
 
   ImGui::Checkbox("Show QuadTree (Q)", &show_quad_tree);

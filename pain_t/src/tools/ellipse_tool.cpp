@@ -4,6 +4,8 @@
 #include "../figures/figure.h"
 #include "../figures/rectangle.h"
 #include "../scene/app.h"
+#include "commands/create_figure_command.h"
+#include "commands/i_command.h"
 #include <string>
 
 ellipse_tool::ellipse_tool(engine_2d *engine, app *application)
@@ -46,7 +48,11 @@ void ellipse_tool::on_mouse_up(int button, point p) {
       starting_point, adjusted_end,
       application->get_scene().get_active_border_color(),
       application->get_scene().get_active_fill_color(), true, engine);
-  application->get_scene().add_figure(new_ellipse);
+
+  i_command *cmd =
+      new create_figure_command(&application->get_scene(), new_ellipse);
+
+  application->get_scene().execute(cmd);
 }
 
 void ellipse_tool::on_key_down(int key) {}

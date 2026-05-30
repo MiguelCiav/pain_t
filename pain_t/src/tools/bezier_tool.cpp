@@ -4,6 +4,8 @@
 #include "../figures/figure.h"
 #include "../figures/line.h"
 #include "../scene/app.h"
+#include "commands/create_figure_command.h"
+#include "commands/i_command.h"
 #include <string>
 
 bezier_tool::bezier_tool(engine_2d *engine, app *application)
@@ -38,9 +40,10 @@ void bezier_tool::on_key_down(int key) {
       points.clear();
       return;
     }
-    figure *new_bezier = new bezier(
-        points, application->get_scene().get_active_border_color(), engine);
-    application->get_scene().add_figure(new_bezier);
+    application->get_scene().execute(new create_figure_command(
+        &application->get_scene(),
+        new bezier(points, application->get_scene().get_active_border_color(),
+                   engine)));
     points.clear();
   }
 }

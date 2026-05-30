@@ -4,6 +4,8 @@
 #include "../figures/line.h"
 #include "../figures/triangle.h"
 #include "../scene/app.h"
+#include "commands/create_figure_command.h"
+#include "commands/i_command.h"
 #include <string>
 
 triangle_tool::triangle_tool(engine_2d *engine, app *application)
@@ -25,7 +27,11 @@ void triangle_tool::on_mouse_down(int button, point p) {
     figure *new_tri = new triangle(
         tri_points, application->get_scene().get_active_border_color(),
         application->get_scene().get_active_fill_color(), true, engine);
-    application->get_scene().add_figure(new_tri);
+
+    i_command *cmd =
+        new create_figure_command(&application->get_scene(), new_tri);
+
+    application->get_scene().execute(cmd);
   }
 }
 

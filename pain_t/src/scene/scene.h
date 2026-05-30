@@ -1,6 +1,8 @@
 #pragma once
 #include "../figures/figure.h"
 #include "../figures/point.h"
+#include "commands/command_history.h"
+#include "commands/i_command.h"
 #include <vector>
 
 class quad_tree;
@@ -9,6 +11,7 @@ const double CLICK_TOLERANCE = 3;
 
 class scene {
 private:
+  command_history history;
   color background_color = color(0.85f, 0.85f, 0.85f);
   color active_border_color = color(0.0f, 0.0f, 0.0f);
   color active_fill_color = color(1.0f, 1.0f, 1.0f);
@@ -45,4 +48,9 @@ public:
   void set_active_border_color(color c) { active_border_color = c; }
   color get_active_fill_color() const { return active_fill_color; }
   void set_active_fill_color(color c) { active_fill_color = c; }
+
+  // Commands
+  void undo();
+  void redo();
+  void execute(i_command *cmd);
 };

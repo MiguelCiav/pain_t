@@ -3,6 +3,8 @@
 #include "../figures/figure.h"
 #include "../figures/rectangle.h"
 #include "../scene/app.h"
+#include "commands/create_figure_command.h"
+#include "commands/i_command.h"
 #include <stdexcept>
 #include <string>
 
@@ -34,7 +36,7 @@ void rect_tool::on_mouse_up(int button, point p) {
   if (starting_point == ending_point) {
     return;
   }
-  
+
   point adjusted_end = ending_point;
   if (application->is_ctrl_pressed()) {
     int dx = ending_point.x - starting_point.x;
@@ -44,10 +46,15 @@ void rect_tool::on_mouse_up(int button, point p) {
                          starting_point.y + (dy < 0 ? -max_d : max_d));
   }
 
-  figure *new_rect = new rectangle(starting_point, adjusted_end,
-                                   application->get_scene().get_active_border_color(),
-                                   application->get_scene().get_active_fill_color(), true, engine);
-  application->get_scene().add_figure(new_rect);
+  figure *new_rect = new rectangle(
+      starting_point, adjusted_end,
+      application->get_scene().get_active_border_color(),
+      application->get_scene().get_active_fill_color(), true, engine);
+
+  i_command *cmd =
+      new create_figure_command(&application->get_scene(), new_rect);
+
+  application->get_scene().execute(cmd);
 }
 
 void rect_tool::on_key_down(int key) {}
@@ -68,7 +75,8 @@ void rect_tool::draw_preview() {
 
   rectangle temp_rect(starting_point, adjusted_end,
                       application->get_scene().get_active_border_color(),
-                      application->get_scene().get_active_fill_color(), true, engine);
+                      application->get_scene().get_active_fill_color(), true,
+                      engine);
   temp_rect.draw();
 }
 

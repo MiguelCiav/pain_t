@@ -3,6 +3,8 @@
 #include "../figures/figure.h"
 #include "../figures/line.h"
 #include "../scene/app.h"
+#include "commands/create_figure_command.h"
+#include "commands/i_command.h"
 #include <string>
 
 line_tool::line_tool(engine_2d *engine, app *application)
@@ -30,9 +32,14 @@ void line_tool::on_mouse_up(int button, point p) {
   if (starting_point == ending_point) {
     return;
   }
-  figure *new_line = new line(starting_point, ending_point,
-                              application->get_scene().get_active_border_color(), engine);
-  application->get_scene().add_figure(new_line);
+  figure *new_line =
+      new line(starting_point, ending_point,
+               application->get_scene().get_active_border_color(), engine);
+
+  i_command *cmd =
+      new create_figure_command(&application->get_scene(), new_line);
+
+  application->get_scene().execute(cmd);
 }
 
 void line_tool::on_key_down(int key) {}
@@ -41,8 +48,8 @@ void line_tool::draw_preview() {
   if (!is_drawing) {
     return;
   }
-  line temp_line(starting_point, ending_point, application->get_scene().get_active_border_color(),
-                 engine);
+  line temp_line(starting_point, ending_point,
+                 application->get_scene().get_active_border_color(), engine);
   temp_line.draw_border();
 }
 

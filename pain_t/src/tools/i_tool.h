@@ -1,7 +1,6 @@
 #pragma once
 #include "../figures/point.h"
 #include <string>
-#include <vector>
 
 class engine_2d;
 class figure;
