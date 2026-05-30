@@ -79,6 +79,7 @@ void scene::clear() {
   if (tree) {
     tree->clear();
   }
+  history.clear();
 }
 
 void scene::reorder_figures(int source_idx, int target_idx) {

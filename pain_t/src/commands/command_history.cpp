@@ -24,3 +24,18 @@ void command_history::redo() {
   cmd->execute();
   undo_stack.push(cmd);
 }
+
+command_history::~command_history() {
+  clear();
+}
+
+void command_history::clear() {
+  while (!undo_stack.empty()) {
+    delete undo_stack.top();
+    undo_stack.pop();
+  }
+  while (!redo_stack.empty()) {
+    delete redo_stack.top();
+    redo_stack.pop();
+  }
+}

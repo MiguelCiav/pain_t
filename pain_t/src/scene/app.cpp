@@ -1,4 +1,7 @@
 #include "app.h"
+#include "scene/scene.h"
+#include "scene_serializer.h"
+#include "../commands/delete_figure_command.h"
 #include "../figures/figure.h"
 #include "../figures/line.h"
 #include "../figures/rectangle.h"
@@ -8,7 +11,6 @@
 #include "../tools/rect_tool.h"
 #include "../tools/selection_tool.h"
 #include "../tools/triangle_tool.h"
-#include "scene/scene.h"
 #include <iostream>
 
 app::app(int width, int height) : engine_2d(width, height, "pain_t") {}
@@ -22,9 +24,7 @@ app::~app() {
   delete s_tool;
 }
 
-void app::setup() {
-  clear(main_scene.get_background_color());
-  main_scene.init_tree(get_width(), get_height());
+void app::register_tools() {
   l_tool = new line_tool(this, this);
   r_tool = new rect_tool(this, this);
   t_tool = new triangle_tool(this, this);
@@ -34,9 +34,48 @@ void app::setup() {
   active_tool = l_tool;
 }
 
+void app::register_shortcuts() {
+  s_manager.register_shortcut(GLFW_KEY_Z, true,
+                              [this]() { main_scene.undo(); });
+  s_manager.register_shortcut(GLFW_KEY_Y, true,
+                              [this]() { main_scene.redo(); });
+  s_manager.register_shortcut(GLFW_KEY_Q, false, [this]() {
+    show_quad_tree = !show_quad_tree;
+  });
+  s_manager.register_shortcut(GLFW_KEY_DELETE, false, [this]() {
+    figure* selected = main_scene.get_selected_figure();
+    if (selected) {
+      main_scene.execute(new delete_figure_command(&main_scene, selected));
+    }
+  });
+  s_manager.register_shortcut(GLFW_KEY_BACKSPACE, false, [this]() {
+    figure* selected = main_scene.get_selected_figure();
+    if (selected) {
+      main_scene.execute(new delete_figure_command(&main_scene, selected));
+    }
+  });
+  s_manager.register_shortcut(GLFW_KEY_S, true, [this]() {
+    save_scene();
+  });
+  s_manager.register_shortcut(GLFW_KEY_O, true, [this]() {
+    load_scene();
+  });
+}
+
+void app::setup() {
+  clear(main_scene.get_background_color());
+  main_scene.init_tree(get_width(), get_height());
+  register_tools();
+  register_shortcuts();
+}
+
 void app::on_key_down(int key) {
   if (ImGui::GetIO().WantCaptureKeyboard)
     return;
+
+  if (s_manager.handle_key(key, is_ctrl_pressed()))
+    return;
+
   if (active_tool)
     active_tool->on_key_down(key);
 }
@@ -66,6 +105,12 @@ void app::update(float deltaTime) {
   }
   if (active_tool) {
     active_tool->draw_preview();
+  }
+  if (status_timer > 0.0f) {
+    status_timer -= deltaTime;
+    if (status_timer <= 0.0f) {
+      status_message = "";
+    }
   }
 }
 
@@ -119,6 +164,22 @@ void app::draw_ui() {
   }
 
   ImGui::Checkbox("Show QuadTree (Q)", &show_quad_tree);
+
+  ImGui::Separator();
+  ImGui::Text("File Operations");
+  ImGui::InputText("##FilePath", save_load_path, IM_ARRAYSIZE(save_load_path));
+  
+  if (ImGui::Button("Save Canvas")) {
+    save_scene();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Load Canvas")) {
+    load_scene();
+  }
+
+  if (!status_message.empty()) {
+    ImGui::TextColored(ImVec4(status_color.r, status_color.g, status_color.b, 1.0f), "%s", status_message.c_str());
+  }
 
   ImGui::Separator();
 
@@ -185,4 +246,26 @@ void app::draw_ui() {
   ImGui::EndChild();
 
   ImGui::End();
+}
+
+void app::save_scene() {
+  if (scene_serializer::save(main_scene, save_load_path)) {
+    set_status("Successfully saved to " + std::string(save_load_path), color(0.1f, 0.8f, 0.1f));
+  } else {
+    set_status("Failed to save to " + std::string(save_load_path), color(0.9f, 0.1f, 0.1f));
+  }
+}
+
+void app::load_scene() {
+  if (scene_serializer::load_into(save_load_path, main_scene, this)) {
+    set_status("Successfully loaded from " + std::string(save_load_path), color(0.1f, 0.8f, 0.1f));
+  } else {
+    set_status("Failed to load from " + std::string(save_load_path), color(0.9f, 0.1f, 0.1f));
+  }
+}
+
+void app::set_status(const std::string& msg, const color& col) {
+  status_message = msg;
+  status_color = col;
+  status_timer = 5.0f;
 }

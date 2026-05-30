@@ -2,6 +2,7 @@
 #include "../engine/engine_2d.h"
 #include "GLFW/glfw3.h"
 #include "scene.h"
+#include "shortcut_manager.h"
 
 // Forward declarations
 class figure;
@@ -10,6 +11,7 @@ class i_tool;
 class app : public engine_2d {
 private:
   scene main_scene;
+  shortcut_manager s_manager;
   i_tool *active_tool = nullptr;
   i_tool *l_tool = nullptr;
   i_tool *r_tool = nullptr;
@@ -18,6 +20,17 @@ private:
   i_tool *b_tool = nullptr;
   i_tool *s_tool = nullptr;
   bool show_quad_tree = false;
+  char save_load_path[256] = "drawing.p_t";
+  std::string status_message = "";
+  color status_color = color(0.0f, 0.0f, 0.0f);
+  float status_timer = 0.0f;
+
+  void save_scene();
+  void load_scene();
+  void set_status(const std::string& msg, const color& col);
+
+  void register_shortcuts();
+  void register_tools();
 
 public:
   app(int width = 800, int height = 600);

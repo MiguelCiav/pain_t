@@ -8,10 +8,11 @@ private:
   std::stack<i_command *> redo_stack;
 
 public:
-  ~command_history() = default;
+  ~command_history();
   void add(i_command *cmd);
   void undo();
   void redo();
+  void clear();
   bool can_undo() { return !undo_stack.empty(); }
   bool can_redo() { return !redo_stack.empty(); }
 };

@@ -1,5 +1,6 @@
 #include "../pain_t/src/engine/color.h"
 #include "../pain_t/src/engine/engine_2d.h"
+#include "../pain_t/src/scene/scene_serializer.h"
 #include "../pain_t/src/figures/ellipse.h"
 #include "../pain_t/src/figures/figure.h"
 #include "../pain_t/src/figures/line.h"
@@ -19,9 +20,15 @@
 
 inline app &get_test_app() {
   static app test_app;
+  static bool initialized = false;
+  if (!initialized) {
+    test_app.setup();
+    initialized = true;
+  }
   // Clear figures and deselect on each query
   test_app.get_scene().deselect();
   test_app.get_scene().get_figures().clear();
+  test_app.get_scene().init_tree(test_app.get_width(), test_app.get_height());
   return test_app;
 }
 
@@ -566,6 +573,62 @@ TEST_CASE("selection_tool special figure handling", "[tools][selection]") {
 
     sc.deselect();
     delete ell;
+  }
+}
+
+TEST_CASE("scene save and load serialization", "[serialization]") {
+  app &test_app = get_test_app();
+  scene &sc = test_app.get_scene();
+  sc.get_figures().clear();
+  sc.deselect();
+  sc.set_background_color(color(0.12f, 0.34f, 0.56f));
+
+  // Add some figures to the scene
+  figure *line1 = new ::line(point(10, 20), point(30, 40), color(1, 0, 0), &test_app);
+  figure *rect1 = new rectangle(point(50, 60), point(150, 160), color(0, 1, 0), color(0, 0, 1), true, &test_app);
+  sc.add_figure(line1);
+  sc.add_figure(rect1);
+
+  std::string filename = "test_serialization.p_t";
+  
+  SECTION("save scene to file") {
+    REQUIRE(scene_serializer::save(sc, filename) == true);
+  }
+
+  SECTION("load scene from file") {
+    // Make sure file exists by saving first
+    REQUIRE(scene_serializer::save(sc, filename) == true);
+
+    // Now clear the scene
+    sc.clear();
+    REQUIRE(sc.get_figures().empty());
+
+    // Load it back
+    REQUIRE(scene_serializer::load_into(filename, sc, &test_app) == true);
+
+    // Verify background color
+    REQUIRE(sc.get_background_color() == color(0.12f, 0.34f, 0.56f));
+
+    // Verify figures count
+    REQUIRE(sc.get_figures().size() == 2);
+
+    // Verify first figure (line)
+    figure *fig0 = sc.get_figures()[0];
+    REQUIRE(fig0->get_type_tag() == "line");
+    REQUIRE(fig0->get_border_color() == color(1, 0, 0));
+    REQUIRE(fig0->get_control_points().size() == 2);
+    REQUIRE(fig0->get_control_points()[0].get_position().x == 10.0);
+    REQUIRE(fig0->get_control_points()[0].get_position().y == 20.0);
+    REQUIRE(fig0->get_control_points()[1].get_position().x == 30.0);
+    REQUIRE(fig0->get_control_points()[1].get_position().y == 40.0);
+
+    // Verify second figure (rectangle)
+    figure *fig1 = sc.get_figures()[1];
+    REQUIRE(fig1->get_type_tag() == "rectangle");
+    REQUIRE(fig1->get_border_color() == color(0, 1, 0));
+    REQUIRE(fig1->get_fill_color() == color(0, 0, 1));
+    REQUIRE(fig1->is_filled() == true);
+    REQUIRE(fig1->get_control_points().size() == 4);
   }
 }
 
