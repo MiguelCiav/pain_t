@@ -1,7 +1,6 @@
 #pragma once
 #include "../figures/point.h"
 #include "i_tool.h"
-#include <vector>
 
 class engine_2d;
 class figure;
@@ -23,5 +22,15 @@ private:
   point last_mouse_point;
   bool is_deforming = false;
   int active_control_point_idx = -1;
-};
 
+  bool try_select_control_point(figure *selected, point p);
+  bool try_select_center(figure *selected, point p);
+  void query_new_figure(point p);
+  void deform_figure(figure *selected, point p);
+  void drag_figure(figure *selected, point p);
+
+  void draw_bounding_box(figure *selected);
+  void draw_selection_cross(figure *selected);
+  void draw_bezier_guidelines(figure *selected);
+  void draw_control_points(figure *selected);
+};

@@ -32,9 +32,8 @@ bounding_box::bounding_box(std::vector<point> points) {
 std::vector<point> bounding_box::get_bounding_box() const { return points; }
 
 point bounding_box::get_center() const {
-  if (points.empty() || points.size() <= 1)
-    throw std::logic_error(
-        "A bounding box needs at least two points to get the center");
+  if (points.empty())
+    throw std::logic_error("Can't get the center of an empty bounding box");
   double x = 0, y = 0, n = 0;
   for (auto p : points) {
     x += p.x;

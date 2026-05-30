@@ -62,28 +62,13 @@ bool bezier::on_border(point click) const {
     throw std::logic_error(
         "cannot select a bezier with less than 3 control points");
   }
-
   std::vector<point> render_points = this->get_render_points();
-  if (render_points.size() < 2)
-    return false;
-
   for (size_t i = 0; i < render_points.size() - 1; ++i) {
-    point a = render_points[i];
-    point b = render_points[i + 1];
-
-    double min_x = std::min(a.x, b.x) - BEZIER_BOX_TOLERANCE;
-    double max_x = std::max(a.x, b.x) + BEZIER_BOX_TOLERANCE;
-    double min_y = std::min(a.y, b.y) - BEZIER_BOX_TOLERANCE;
-    double max_y = std::max(a.y, b.y) + BEZIER_BOX_TOLERANCE;
-
-    if (click.x >= min_x && click.x <= max_x && click.y >= min_y &&
-        click.y <= max_y) {
-      if (algebra::line::distance_from_point(a, b, click) < LINE_TOLERANCE) {
-        return true;
-      }
+    if (algebra::line::distance_from_point(
+            render_points[i], render_points[i + 1], click) < LINE_TOLERANCE) {
+      return true;
     }
   }
-
   return false;
 }
 

@@ -2,8 +2,8 @@
 #include "../engine/engine_2d.h"
 #include "../figures/bezier.h"
 #include "../figures/figure.h"
-#include "../scene/app.h"
 #include "../figures/line.h"
+#include "../scene/app.h"
 #include <string>
 
 bezier_tool::bezier_tool(engine_2d *engine, app *application)
@@ -32,15 +32,14 @@ void bezier_tool::on_key_down(int key) {
   if (!is_drawing) {
     return;
   }
-  if (points.size() < 3) {
-    is_drawing = false;
-    points.clear();
-    return;
-  }
   if (application->is_enter_pressed() || application->is_escape_pressed()) {
     is_drawing = false;
-    figure *new_bezier =
-        new bezier(points, application->get_scene().get_active_border_color(), engine);
+    if (points.size() < 3) {
+      points.clear();
+      return;
+    }
+    figure *new_bezier = new bezier(
+        points, application->get_scene().get_active_border_color(), engine);
     application->get_scene().add_figure(new_bezier);
     points.clear();
   }
@@ -65,7 +64,8 @@ void bezier_tool::draw_preview() {
   }
 
   if (points.size() >= 3) {
-    bezier temp_bezier(points, application->get_scene().get_active_border_color(), engine);
+    bezier temp_bezier(
+        points, application->get_scene().get_active_border_color(), engine);
     temp_bezier.draw_border();
   }
 

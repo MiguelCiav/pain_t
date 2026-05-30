@@ -32,9 +32,6 @@ void scene::add_figure(figure *f) {
   if (!f) {
     throw std::logic_error("Cannot add a nullptr figure to scene");
   }
-  if (std::find(figures.begin(), figures.end(), f) != figures.end()) {
-    throw std::logic_error("Figure is already present in the scene");
-  }
   figures.push_back(f);
   if (tree) {
     tree->insert(f);
@@ -62,10 +59,6 @@ void scene::remove_figure(figure *f) {
 void scene::notify_figure_moved(figure *f) {
   if (!f) {
     throw std::logic_error("Cannot notify from a nullptr figure on scene");
-  }
-  if (std::find(figures.begin(), figures.end(), f) == figures.end()) {
-    throw std::logic_error(
-        "Cannot notify moved for a figure not present in the scene");
   }
   if (tree) {
     tree->clear();
@@ -106,8 +99,8 @@ const std::vector<figure *> &scene::get_figures() const { return figures; }
 std::vector<figure *> &scene::get_figures() { return figures; }
 
 void scene::select(figure *f) {
-  if (f && std::find(figures.begin(), figures.end(), f) == figures.end()) {
-    throw std::logic_error("Cannot select a figure that is not in the scene");
+  if (!f) {
+    throw std::logic_error("Cannot select a nullptr figure");
   }
   deselect();
   selected_figure = f;
@@ -127,12 +120,7 @@ figure *scene::get_selected_figure() const { return selected_figure; }
 
 figure *scene::query(point click) const {
   if (!tree) {
-    for (auto it = figures.rbegin(); it != figures.rend(); ++it) {
-      if ((*it)->inside(click)) {
-        return *it;
-      }
-    }
-    return nullptr;
+    throw std::logic_error("Can't make scene queries without a tree");
   }
 
   bounding_box click_box(

@@ -26,6 +26,7 @@ void ellipse_tool::on_mouse_up(int button, point p) {
   if (!is_drawing) {
     return;
   }
+
   is_drawing = false;
   ending_point = p;
   if (starting_point == ending_point) {

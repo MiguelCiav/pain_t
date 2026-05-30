@@ -4,6 +4,13 @@
 #include <cmath>
 
 namespace algebra {
+
+inline double distance(point a, point b) {
+  double dx = a.x - b.x;
+  double dy = a.y - b.y;
+  return std::sqrt(dx * dx + dy * dy);
+}
+
 namespace line {
 inline double distance_from_point(point a, point b, point c) {
   point vector_ab = b - a;

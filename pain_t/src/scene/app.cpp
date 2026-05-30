@@ -23,10 +23,7 @@ app::~app() {
 
 void app::setup() {
   clear(main_scene.get_background_color());
-  std::cout << "pain_t engine initialized successfully." << std::endl;
-
   main_scene.init_tree(get_width(), get_height());
-
   l_tool = new line_tool(this, this);
   r_tool = new rect_tool(this, this);
   t_tool = new triangle_tool(this, this);
@@ -63,11 +60,9 @@ void app::on_mouse_move(double x, double y) {
 void app::update(float deltaTime) {
   clear(main_scene.get_background_color());
   main_scene.draw_all(this);
-
   if (show_quad_tree) {
     main_scene.draw_quad_tree(this);
   }
-
   if (active_tool) {
     active_tool->draw_preview();
   }
