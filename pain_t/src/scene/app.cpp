@@ -11,27 +11,23 @@
 #include "../tools/triangle_tool.h"
 #include "scene/scene.h"
 #include "scene_serializer.h"
-#include <iostream>
 
 app::app(int width, int height) : engine_2d(width, height, "pain_t") {}
 
 app::~app() {
-  delete l_tool;
-  delete r_tool;
-  delete t_tool;
-  delete e_tool;
-  delete b_tool;
-  delete s_tool;
+  for (i_tool *tool : tools) {
+    delete tool;
+  }
 }
 
 void app::register_tools() {
-  l_tool = new line_tool(this, this);
-  r_tool = new rect_tool(this, this);
-  t_tool = new triangle_tool(this, this);
-  e_tool = new ellipse_tool(this, this);
-  b_tool = new bezier_tool(this, this);
-  s_tool = new selection_tool(this, this);
-  active_tool = l_tool;
+  tools.push_back(new selection_tool(this, this));
+  tools.push_back(new line_tool(this, this));
+  tools.push_back(new rect_tool(this, this));
+  tools.push_back(new triangle_tool(this, this));
+  tools.push_back(new ellipse_tool(this, this));
+  tools.push_back(new bezier_tool(this, this));
+  active_tool = tools[1]; // Line Tool is the default active tool
 }
 
 void app::register_shortcuts() {
@@ -116,34 +112,33 @@ void app::draw_ui() {
                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                    ImGuiWindowFlags_NoCollapse);
 
+  draw_tool_selector();
+  draw_canvas_actions();
+  draw_file_operations();
+  draw_color_settings();
+  draw_layers_panel();
+
+  ImGui::End();
+}
+
+void app::draw_tool_selector() {
   std::string current = active_tool ? active_tool->get_name() : "None";
+
   ImGui::Text("Active Tool: %s", current.c_str());
   ImGui::Separator();
 
-  if (ImGui::Button("Selection Tool")) {
-    active_tool = s_tool;
+  for (i_tool *tool : tools) {
+    if (ImGui::Button(tool->get_label().c_str())) {
+      active_tool = tool;
+    }
   }
 
-  if (ImGui::Button("Line Tool")) {
-    active_tool = l_tool;
+  if (active_tool) {
+    active_tool->draw_settings();
   }
+}
 
-  if (ImGui::Button("Rectangle Tool")) {
-    active_tool = r_tool;
-  }
-
-  if (ImGui::Button("Triangle Tool")) {
-    active_tool = t_tool;
-  }
-
-  if (ImGui::Button("Ellipse Tool")) {
-    active_tool = e_tool;
-  }
-
-  if (ImGui::Button("Bezier Tool")) {
-    active_tool = b_tool;
-  }
-
+void app::draw_canvas_actions() {
   ImGui::Separator();
 
   if (ImGui::Button("Clear Scene")) {
@@ -159,7 +154,9 @@ void app::draw_ui() {
   }
 
   ImGui::Checkbox("Show QuadTree (Q)", &show_quad_tree);
+}
 
+void app::draw_file_operations() {
   ImGui::Separator();
   ImGui::Text("File Operations");
   ImGui::InputText("##FilePath", save_load_path, IM_ARRAYSIZE(save_load_path));
@@ -177,7 +174,9 @@ void app::draw_ui() {
         ImVec4(status_color.r, status_color.g, status_color.b, 1.0f), "%s",
         status_message.c_str());
   }
+}
 
+void app::draw_color_settings() {
   ImGui::Separator();
 
   ImGui::Text("Border Color");
@@ -201,7 +200,9 @@ void app::draw_ui() {
   if (ImGui::ColorEdit3("##Background Color", &bg.r)) {
     main_scene.set_background_color(bg);
   }
+}
 
+void app::draw_layers_panel() {
   ImGui::Separator();
   ImGui::Text("Layers (Z-Index)");
   ImGui::TextDisabled("Drag & Drop to reorder");
@@ -245,8 +246,6 @@ void app::draw_ui() {
     }
   }
   ImGui::EndChild();
-
-  ImGui::End();
 }
 
 void app::save_scene() {

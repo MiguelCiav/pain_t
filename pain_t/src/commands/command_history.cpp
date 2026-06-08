@@ -4,8 +4,9 @@
 
 void command_history::add(i_command *cmd) {
   undo_stack.push(cmd);
-  if (!redo_stack.empty()) {
-    redo_stack = {};
+  while (!redo_stack.empty()) {
+    delete redo_stack.top();
+    redo_stack.pop();
   }
 }
 void command_history::undo() {

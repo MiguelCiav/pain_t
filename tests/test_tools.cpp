@@ -9,6 +9,8 @@
 #include "../pain_t/src/figures/triangle.h"
 #include "../pain_t/src/scene/app.h"
 #include "../pain_t/src/scene/scene.h"
+#include "../pain_t/src/commands/increase_degree_command.h"
+#include "../pain_t/src/figures/bezier.h"
 #include "../pain_t/src/tools/bezier_tool.h"
 #include "../pain_t/src/tools/ellipse_tool.h"
 #include "../pain_t/src/tools/line_tool.h"
@@ -630,6 +632,32 @@ TEST_CASE("scene save and load serialization", "[serialization]") {
     REQUIRE(fig1->is_filled() == true);
     REQUIRE(fig1->get_control_points().size() == 4);
   }
+}
+
+TEST_CASE("increase_degree_command execution and undo/redo", "[commands]") {
+  app &test_app = get_test_app();
+  scene &sc = test_app.get_scene();
+  sc.get_figures().clear();
+  sc.deselect();
+
+  std::vector<point> pts = {point(0, 0), point(50, 100), point(100, 0)};
+  bezier *b = new bezier(pts, color(0, 0, 0), &test_app);
+  sc.add_figure(b);
+
+  increase_degree_command *cmd = new increase_degree_command(b, &sc);
+
+  // Execute degree elevation
+  sc.execute(cmd);
+  REQUIRE(b->get_control_points().size() == 4);
+
+  // Undo degree elevation
+  sc.undo();
+  REQUIRE(b->get_control_points().size() == 3);
+  REQUIRE(b->get_control_points()[1].get_y() == 100.0);
+
+  // Redo degree elevation
+  sc.redo();
+  REQUIRE(b->get_control_points().size() == 4);
 }
 
 

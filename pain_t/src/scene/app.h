@@ -13,12 +13,7 @@ private:
   scene main_scene;
   shortcut_manager s_manager;
   i_tool *active_tool = nullptr;
-  i_tool *l_tool = nullptr;
-  i_tool *r_tool = nullptr;
-  i_tool *t_tool = nullptr;
-  i_tool *e_tool = nullptr;
-  i_tool *b_tool = nullptr;
-  i_tool *s_tool = nullptr;
+  std::vector<i_tool *> tools;
   bool show_quad_tree = false;
   char save_load_path[256] = "drawing.p_t";
   std::string status_message = "";
@@ -31,6 +26,13 @@ private:
 
   void register_shortcuts();
   void register_tools();
+
+  // draw_ui sub-functions
+  void draw_tool_selector();
+  void draw_canvas_actions();
+  void draw_file_operations();
+  void draw_color_settings();
+  void draw_layers_panel();
 
 public:
   app(int width = 800, int height = 600);

@@ -481,6 +481,32 @@ TEST_CASE("bezier primitive coverage", "[figures][bezier]") {
         bezier b(pts, border_color, nullptr);
         REQUIRE_FALSE(b.inside(point(50.0, 80.0)));
     }
+
+    SECTION("increase_degree increases points by 1 and elevates degree correctly") {
+        bezier b(pts, border_color, nullptr);
+        REQUIRE(b.get_control_points().size() == 3);
+        
+        b.increase_degree();
+        REQUIRE(b.get_control_points().size() == 4);
+        
+        const auto& cps = b.get_control_points();
+        REQUIRE(std::abs(cps[0].get_x() - 0.0) < 1e-4);
+        REQUIRE(std::abs(cps[0].get_y() - 0.0) < 1e-4);
+        
+        REQUIRE(std::abs(cps[1].get_x() - 33.3333) < 1e-3);
+        REQUIRE(std::abs(cps[1].get_y() - 66.6667) < 1e-3);
+        
+        REQUIRE(std::abs(cps[2].get_x() - 66.6667) < 1e-3);
+        REQUIRE(std::abs(cps[2].get_y() - 66.6667) < 1e-3);
+        
+        REQUIRE(std::abs(cps[3].get_x() - 100.0) < 1e-4);
+        REQUIRE(std::abs(cps[3].get_y() - 0.0) < 1e-4);
+        
+        // Throws when control points < 3
+        std::vector<point> bad_pts = {point(0,0), point(10,10)};
+        bezier b_bad(bad_pts, border_color, nullptr);
+        REQUIRE_THROWS_AS(b_bad.increase_degree(), std::logic_error);
+    }
 }
 
 

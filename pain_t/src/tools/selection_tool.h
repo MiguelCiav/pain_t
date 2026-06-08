@@ -15,7 +15,9 @@ public:
   void on_mouse_up(int button, point p) override;
   void on_key_down(int key) override;
   void draw_preview() override;
+  void draw_settings() override;
   std::string get_name() override;
+  std::string get_label() override { return "Selection Tool"; }
 
 private:
   bool is_dragging = false;

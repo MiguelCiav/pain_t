@@ -21,4 +21,5 @@ public:
   void on_key_down(int key) override;
   void draw_preview() override;
   std::string get_name() override;
+  std::string get_label() override { return "Bezier Tool"; }
 };

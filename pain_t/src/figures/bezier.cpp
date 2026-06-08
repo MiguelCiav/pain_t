@@ -75,3 +75,24 @@ bool bezier::on_border(point click) const {
 bool bezier::on_filling(point click) const { return false; }
 
 std::string bezier::get_type_tag() const { return "bezier"; }
+
+void bezier::increase_degree() {
+  if (control_points.size() < 3) {
+    throw std::logic_error(
+        "cannot increase bezier degree with less than 3 control points");
+  }
+  std::vector<control_point> new_control_points;
+  new_control_points.push_back(control_points.front());
+  int n = control_points.size();
+  for (int i = 1; i < n; i++) {
+    double d_i = static_cast<double>(i);
+    double d_n = static_cast<double>(n);
+    point p_i = control_points[i].get_position();
+    point p_im = control_points[i - 1].get_position();
+    point result = (d_i / d_n) * p_im + (1.0 - (d_i / d_n)) * p_i;
+    new_control_points.push_back(control_point(result));
+  }
+  new_control_points.push_back(control_points.back());
+  control_points.clear();
+  control_points = new_control_points;
+}

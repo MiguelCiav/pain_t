@@ -3,9 +3,12 @@
 #include "../figures/algebra.h"
 #include "../figures/bounding_box.h"
 #include "../figures/figure.h"
+#include "../figures/bezier.h"
 #include "../figures/rasterizer.h"
 #include "../scene/app.h"
 #include "../scene/scene.h"
+#include "commands/increase_degree_command.h"
+#include <imgui.h>
 #include <string>
 
 selection_tool::selection_tool(engine_2d *engine, app *application)
@@ -191,3 +194,18 @@ void selection_tool::draw_preview() {
 }
 
 std::string selection_tool::get_name() { return "selection_tool"; }
+
+void selection_tool::draw_settings() {
+  figure *selected = application->get_scene().get_selected_figure();
+  if (selected && selected->get_type_tag() == "bezier") {
+    ImGui::Separator();
+    ImGui::Text("Bezier Options");
+
+    bezier *b = static_cast<bezier *>(selected);
+    if (ImGui::Button("Increase degree")) {
+      if (b->get_control_points().size() >= 3) {
+        application->get_scene().execute(new increase_degree_command(b, &application->get_scene()));
+      }
+    }
+  }
+}

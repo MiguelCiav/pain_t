@@ -20,5 +20,7 @@ public:
   virtual void on_mouse_up(int button, point p) = 0;
   virtual void on_key_down(int key) = 0;
   virtual void draw_preview() = 0;
+  virtual void draw_settings() {}
   virtual std::string get_name() = 0;
+  virtual std::string get_label() = 0;
 };
