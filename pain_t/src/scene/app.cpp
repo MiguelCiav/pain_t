@@ -1,6 +1,4 @@
 #include "app.h"
-#include "scene/scene.h"
-#include "scene_serializer.h"
 #include "../commands/delete_figure_command.h"
 #include "../figures/figure.h"
 #include "../figures/line.h"
@@ -11,6 +9,8 @@
 #include "../tools/rect_tool.h"
 #include "../tools/selection_tool.h"
 #include "../tools/triangle_tool.h"
+#include "scene/scene.h"
+#include "scene_serializer.h"
 #include <iostream>
 
 app::app(int width, int height) : engine_2d(width, height, "pain_t") {}
@@ -39,27 +39,22 @@ void app::register_shortcuts() {
                               [this]() { main_scene.undo(); });
   s_manager.register_shortcut(GLFW_KEY_Y, true,
                               [this]() { main_scene.redo(); });
-  s_manager.register_shortcut(GLFW_KEY_Q, false, [this]() {
-    show_quad_tree = !show_quad_tree;
-  });
+  s_manager.register_shortcut(GLFW_KEY_Q, false,
+                              [this]() { show_quad_tree = !show_quad_tree; });
   s_manager.register_shortcut(GLFW_KEY_DELETE, false, [this]() {
-    figure* selected = main_scene.get_selected_figure();
+    figure *selected = main_scene.get_selected_figure();
     if (selected) {
       main_scene.execute(new delete_figure_command(&main_scene, selected));
     }
   });
   s_manager.register_shortcut(GLFW_KEY_BACKSPACE, false, [this]() {
-    figure* selected = main_scene.get_selected_figure();
+    figure *selected = main_scene.get_selected_figure();
     if (selected) {
       main_scene.execute(new delete_figure_command(&main_scene, selected));
     }
   });
-  s_manager.register_shortcut(GLFW_KEY_S, true, [this]() {
-    save_scene();
-  });
-  s_manager.register_shortcut(GLFW_KEY_O, true, [this]() {
-    load_scene();
-  });
+  s_manager.register_shortcut(GLFW_KEY_S, true, [this]() { save_scene(); });
+  s_manager.register_shortcut(GLFW_KEY_O, true, [this]() { load_scene(); });
 }
 
 void app::setup() {
@@ -168,7 +163,7 @@ void app::draw_ui() {
   ImGui::Separator();
   ImGui::Text("File Operations");
   ImGui::InputText("##FilePath", save_load_path, IM_ARRAYSIZE(save_load_path));
-  
+
   if (ImGui::Button("Save Canvas")) {
     save_scene();
   }
@@ -178,7 +173,9 @@ void app::draw_ui() {
   }
 
   if (!status_message.empty()) {
-    ImGui::TextColored(ImVec4(status_color.r, status_color.g, status_color.b, 1.0f), "%s", status_message.c_str());
+    ImGui::TextColored(
+        ImVec4(status_color.r, status_color.g, status_color.b, 1.0f), "%s",
+        status_message.c_str());
   }
 
   ImGui::Separator();
@@ -187,12 +184,16 @@ void app::draw_ui() {
   color border = main_scene.get_active_border_color();
   if (ImGui::ColorEdit3("##Border Color", &border.r)) {
     main_scene.set_active_border_color(border);
+    if (main_scene.get_selected_figure())
+      main_scene.get_selected_figure()->set_border_color(border);
   }
 
   ImGui::Text("Fill Color");
   color fill = main_scene.get_active_fill_color();
   if (ImGui::ColorEdit3("##Fill Color", &fill.r)) {
     main_scene.set_active_fill_color(fill);
+    if (main_scene.get_selected_figure())
+      main_scene.get_selected_figure()->set_fill_color(fill);
   }
 
   ImGui::Text("Background Color");
@@ -250,21 +251,25 @@ void app::draw_ui() {
 
 void app::save_scene() {
   if (scene_serializer::save(main_scene, save_load_path)) {
-    set_status("Successfully saved to " + std::string(save_load_path), color(0.1f, 0.8f, 0.1f));
+    set_status("Successfully saved to " + std::string(save_load_path),
+               color(0.1f, 0.8f, 0.1f));
   } else {
-    set_status("Failed to save to " + std::string(save_load_path), color(0.9f, 0.1f, 0.1f));
+    set_status("Failed to save to " + std::string(save_load_path),
+               color(0.9f, 0.1f, 0.1f));
   }
 }
 
 void app::load_scene() {
   if (scene_serializer::load_into(save_load_path, main_scene, this)) {
-    set_status("Successfully loaded from " + std::string(save_load_path), color(0.1f, 0.8f, 0.1f));
+    set_status("Successfully loaded from " + std::string(save_load_path),
+               color(0.1f, 0.8f, 0.1f));
   } else {
-    set_status("Failed to load from " + std::string(save_load_path), color(0.9f, 0.1f, 0.1f));
+    set_status("Failed to load from " + std::string(save_load_path),
+               color(0.9f, 0.1f, 0.1f));
   }
 }
 
-void app::set_status(const std::string& msg, const color& col) {
+void app::set_status(const std::string &msg, const color &col) {
   status_message = msg;
   status_color = col;
   status_timer = 5.0f;
