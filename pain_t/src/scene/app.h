@@ -3,6 +3,7 @@
 #include "GLFW/glfw3.h"
 #include "scene.h"
 #include "shortcut_manager.h"
+#include "ui_manager.h"
 
 // Forward declarations
 class figure;
@@ -19,20 +20,12 @@ private:
   std::string status_message = "";
   color status_color = color(0.0f, 0.0f, 0.0f);
   float status_timer = 0.0f;
+  ui_manager gui;
 
-  void save_scene();
-  void load_scene();
   void set_status(const std::string& msg, const color& col);
 
   void register_shortcuts();
   void register_tools();
-
-  // draw_ui sub-functions
-  void draw_tool_selector();
-  void draw_canvas_actions();
-  void draw_file_operations();
-  void draw_color_settings();
-  void draw_layers_panel();
 
 public:
   app(int width = 800, int height = 600);
@@ -45,7 +38,22 @@ public:
   void on_mouse_move(double x, double y) override;
   void update(float deltaTime) override;
   void draw_ui() override;
+
+  void save_scene();
+  void load_scene();
+
   scene &get_scene() { return main_scene; }
+  i_tool *get_active_tool() const { return active_tool; }
+  void set_active_tool(i_tool *tool) { active_tool = tool; }
+  const std::vector<i_tool *> &get_tools() const { return tools; }
+  
+  bool is_showing_quad_tree() const { return show_quad_tree; }
+  void set_show_quad_tree(bool show) { show_quad_tree = show; }
+
+  char *get_save_load_path() { return save_load_path; }
+  const std::string &get_status_message() const { return status_message; }
+  color get_status_color() const { return status_color; }
+
   bool is_ctrl_pressed() const {
     return is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||
            is_key_pressed(GLFW_KEY_RIGHT_CONTROL);

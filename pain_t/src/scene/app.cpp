@@ -1,8 +1,5 @@
 #include "app.h"
 #include "../commands/delete_figure_command.h"
-#include "../commands/clear_scene_command.h"
-#include "../commands/reorder_figures_command.h"
-#include "../commands/change_color_command.h"
 #include "../figures/figure.h"
 #include "../figures/line.h"
 #include "../figures/rectangle.h"
@@ -20,6 +17,31 @@ app::app(int width, int height) : engine_2d(width, height, "pain_t") {}
 app::~app() {
   for (i_tool *tool : tools) {
     delete tool;
+  }
+}
+
+// APP SETUP
+void app::setup() {
+  clear(main_scene.get_background_color());
+  main_scene.init_tree(get_width(), get_height());
+  register_tools();
+  register_shortcuts();
+}
+
+void app::update(float deltaTime) {
+  clear(main_scene.get_background_color());
+  main_scene.draw_all(this);
+  if (show_quad_tree) {
+    main_scene.draw_quad_tree(this);
+  }
+  if (active_tool) {
+    active_tool->draw_preview();
+  }
+  if (status_timer > 0.0f) {
+    status_timer -= deltaTime;
+    if (status_timer <= 0.0f) {
+      status_message = "";
+    }
   }
 }
 
@@ -56,13 +78,20 @@ void app::register_shortcuts() {
   s_manager.register_shortcut(GLFW_KEY_O, true, [this]() { load_scene(); });
 }
 
-void app::setup() {
-  clear(main_scene.get_background_color());
-  main_scene.init_tree(get_width(), get_height());
-  register_tools();
-  register_shortcuts();
+// UI
+void app::draw_ui() {
+  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(200, get_height()), ImGuiCond_Always);
+  ImGui::Begin("Tools", nullptr,
+               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
+                   ImGuiWindowFlags_NoCollapse);
+
+  gui.render(this);
+
+  ImGui::End();
 }
 
+// EVENTS
 void app::on_key_down(int key) {
   if (ImGui::GetIO().WantCaptureKeyboard)
     return;
@@ -91,209 +120,7 @@ void app::on_mouse_move(double x, double y) {
     active_tool->on_mouse_move(point(x, y));
 }
 
-void app::update(float deltaTime) {
-  clear(main_scene.get_background_color());
-  main_scene.draw_all(this);
-  if (show_quad_tree) {
-    main_scene.draw_quad_tree(this);
-  }
-  if (active_tool) {
-    active_tool->draw_preview();
-  }
-  if (status_timer > 0.0f) {
-    status_timer -= deltaTime;
-    if (status_timer <= 0.0f) {
-      status_message = "";
-    }
-  }
-}
-
-void app::draw_ui() {
-  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(200, get_height()), ImGuiCond_Always);
-  ImGui::Begin("Tools", nullptr,
-               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-                   ImGuiWindowFlags_NoCollapse);
-
-  draw_tool_selector();
-  draw_canvas_actions();
-  draw_file_operations();
-  draw_color_settings();
-  draw_layers_panel();
-
-  ImGui::End();
-}
-
-void app::draw_tool_selector() {
-  std::string current = active_tool ? active_tool->get_name() : "None";
-
-  ImGui::Text("Active Tool: %s", current.c_str());
-  ImGui::Separator();
-
-  for (i_tool *tool : tools) {
-    if (ImGui::Button(tool->get_label().c_str())) {
-      active_tool = tool;
-    }
-  }
-
-  if (active_tool) {
-    active_tool->draw_settings();
-  }
-}
-
-void app::draw_canvas_actions() {
-  ImGui::Separator();
-
-  if (ImGui::Button("Clear Scene")) {
-    if (!main_scene.get_figures().empty()) {
-      main_scene.execute(new clear_scene_command(&main_scene));
-    }
-  }
-
-  if (ImGui::Button("undo")) {
-    main_scene.undo();
-  }
-
-  if (ImGui::Button("redo")) {
-    main_scene.redo();
-  }
-
-  ImGui::Checkbox("Show QuadTree (Q)", &show_quad_tree);
-}
-
-void app::draw_file_operations() {
-  ImGui::Separator();
-  ImGui::Text("File Operations");
-  ImGui::InputText("##FilePath", save_load_path, IM_ARRAYSIZE(save_load_path));
-
-  if (ImGui::Button("Save Canvas")) {
-    save_scene();
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("Load Canvas")) {
-    load_scene();
-  }
-
-  if (!status_message.empty()) {
-    ImGui::TextColored(
-        ImVec4(status_color.r, status_color.g, status_color.b, 1.0f), "%s",
-        status_message.c_str());
-  }
-}
-
-void app::draw_color_settings() {
-  ImGui::Separator();
-
-  ImGui::Text("Border Color");
-  color border = main_scene.get_active_border_color();
-
-  static color border_start_color;
-  static bool border_color_active = false;
-
-  if (ImGui::ColorEdit3("##Border Color", &border.r)) {
-    if (!border_color_active) {
-      if (main_scene.get_selected_figure()) {
-        border_start_color = main_scene.get_selected_figure()->get_border_color();
-      } else {
-        border_start_color = main_scene.get_active_border_color();
-      }
-      border_color_active = true;
-    }
-    main_scene.set_active_border_color(border);
-    if (main_scene.get_selected_figure())
-      main_scene.get_selected_figure()->set_border_color(border);
-  }
-
-  if (ImGui::IsItemDeactivatedAfterEdit()) {
-    border_color_active = false;
-    if (main_scene.get_selected_figure()) {
-      figure *selected = main_scene.get_selected_figure();
-      selected->set_border_color(border_start_color);
-      main_scene.execute(new change_color_command(selected, color_type::border, border_start_color, border));
-    }
-  }
-
-  ImGui::Text("Fill Color");
-  color fill = main_scene.get_active_fill_color();
-
-  static color fill_start_color;
-  static bool fill_color_active = false;
-
-  if (ImGui::ColorEdit3("##Fill Color", &fill.r)) {
-    if (!fill_color_active) {
-      if (main_scene.get_selected_figure()) {
-        fill_start_color = main_scene.get_selected_figure()->get_fill_color();
-      } else {
-        fill_start_color = main_scene.get_active_fill_color();
-      }
-      fill_color_active = true;
-    }
-    main_scene.set_active_fill_color(fill);
-    if (main_scene.get_selected_figure())
-      main_scene.get_selected_figure()->set_fill_color(fill);
-  }
-
-  if (ImGui::IsItemDeactivatedAfterEdit()) {
-    fill_color_active = false;
-    if (main_scene.get_selected_figure()) {
-      figure *selected = main_scene.get_selected_figure();
-      selected->set_fill_color(fill_start_color);
-      main_scene.execute(new change_color_command(selected, color_type::fill, fill_start_color, fill));
-    }
-  }
-
-  ImGui::Text("Background Color");
-  color bg = main_scene.get_background_color();
-  if (ImGui::ColorEdit3("##Background Color", &bg.r)) {
-    main_scene.set_background_color(bg);
-  }
-}
-
-void app::draw_layers_panel() {
-  ImGui::Separator();
-  ImGui::Text("Layers (Z-Index)");
-  ImGui::TextDisabled("Drag & Drop to reorder");
-
-  ImGui::BeginChild("LayersList", ImVec2(0, 150), true);
-  std::vector<figure *> &figures = main_scene.get_figures();
-  int size = static_cast<int>(figures.size());
-
-  for (int n = 0; n < size; n++) {
-    int fig_idx = size - 1 - n;
-    figure *fig = figures[fig_idx];
-
-    std::string item_label =
-        std::to_string(n + 1) + ". " + fig->get_type_tag() + "##" +
-        std::to_string(reinterpret_cast<unsigned long>(fig));
-    bool is_selected = (fig == main_scene.get_selected_figure());
-
-    if (ImGui::Selectable(item_label.c_str(), is_selected)) {
-      main_scene.select(fig);
-    }
-
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-      ImGui::SetDragDropPayload("DND_FIGURE_INDEX", &n, sizeof(int));
-      ImGui::Text("Move %s", fig->get_type_tag().c_str());
-      ImGui::EndDragDropSource();
-    }
-
-    if (ImGui::BeginDragDropTarget()) {
-      if (const ImGuiPayload *payload =
-              ImGui::AcceptDragDropPayload("DND_FIGURE_INDEX")) {
-        IM_ASSERT(payload->DataSize == sizeof(int));
-        int source_n = *(const int *)payload->Data;
-        int target_n = n;
-
-        int source_idx = size - 1 - source_n;
-        int target_idx = size - 1 - target_n;
-        main_scene.execute(new reorder_figures_command(&main_scene, source_idx, target_idx));
-      }
-      ImGui::EndDragDropTarget();
-    }
-  }
-  ImGui::EndChild();
-}
-
+// SCENE STORAGE
 void app::save_scene() {
   if (scene_serializer::save(main_scene, save_load_path)) {
     set_status("Successfully saved to " + std::string(save_load_path),
@@ -314,6 +141,7 @@ void app::load_scene() {
   }
 }
 
+// STATUS
 void app::set_status(const std::string &msg, const color &col) {
   status_message = msg;
   status_color = col;
