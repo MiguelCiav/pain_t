@@ -19,7 +19,7 @@ protected:
   color fill_color;
   bool selected = false;
   bool filled = false;
-  bool bordered = false;
+  bool bordered = true;
   engine_2d *engine = nullptr;
   std::vector<control_point> control_points;
   virtual bool on_border(point click) const = 0;
@@ -60,6 +60,8 @@ public:
     filled = true;
     this->fill_color = fill_color;
   }
+  virtual void set_bordered(bool bordered) { this->bordered = bordered; }
+  virtual void set_filled(bool filled) { this->filled = filled; }
   virtual void select() { this->selected = true; }
   virtual void unselect() { this->selected = false; }
 

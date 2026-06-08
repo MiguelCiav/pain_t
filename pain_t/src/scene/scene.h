@@ -17,13 +17,15 @@ private:
   color active_fill_color = color(1.0f, 1.0f, 1.0f);
   figure *selected_figure = nullptr;
   std::vector<figure *> figures;
+  bool active_bordered = true;
+  bool active_filled = true;
   quad_tree *tree = nullptr;
 
 public:
   scene() = default;
   ~scene();
 
-  void init_tree(double width, double height);
+  void init_tree(double x, double y, double width, double height);
   void add_figure(figure *f);
   void remove_figure(figure *f);
   void notify_figure_moved(figure *f);
@@ -48,6 +50,10 @@ public:
   void set_active_border_color(color c) { active_border_color = c; }
   color get_active_fill_color() const { return active_fill_color; }
   void set_active_fill_color(color c) { active_fill_color = c; }
+  bool is_active_bordered() const { return active_bordered; }
+  void set_active_bordered(bool b) { active_bordered = b; }
+  bool is_active_filled() const { return active_filled; }
+  void set_active_filled(bool f) { active_filled = f; }
 
   // Commands
   void undo();

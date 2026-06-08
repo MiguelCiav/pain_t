@@ -6,6 +6,8 @@
 #include "../commands/change_color_command.h"
 #include "../commands/reorder_figures_command.h"
 #include "../commands/clear_scene_command.h"
+#include "../commands/toggle_border_command.h"
+#include "../commands/toggle_fill_command.h"
 #include <imgui.h>
 #include <vector>
 #include <string>
@@ -25,11 +27,37 @@ void ui_manager::draw_tool_selector(app *application) {
   ImGui::Text("Active Tool: %s", current.c_str());
   ImGui::Separator();
 
-  for (i_tool *tool : application->get_tools()) {
-    if (ImGui::Button(tool->get_label().c_str())) {
+  float avail_width = ImGui::GetContentRegionAvail().x;
+  float spacing = ImGui::GetStyle().ItemSpacing.x;
+  float btn_size = (avail_width - spacing) / 2.0f;
+
+  const std::vector<i_tool *> &tools = application->get_tools();
+  for (size_t i = 0; i < tools.size(); ++i) {
+    i_tool *tool = tools[i];
+    if (i % 2 != 0) {
+      ImGui::SameLine();
+    }
+
+    bool is_active = (tool == active);
+    if (is_active) {
+      ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+    }
+
+    if (ImGui::Button((tool->get_icon() + "##" + tool->get_name()).c_str(), ImVec2(btn_size, btn_size))) {
       application->set_active_tool(tool);
     }
+
+    if (is_active) {
+      ImGui::PopStyleColor(2);
+    }
+
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", tool->get_label().c_str());
+    }
   }
+
+  ImGui::Separator();
 
   active = application->get_active_tool();
   if (active) {
@@ -116,6 +144,14 @@ void ui_manager::draw_color_settings(app *application) {
     }
   }
 
+  bool bordered = sc.get_selected_figure() ? sc.get_selected_figure()->is_bordered() : sc.is_active_bordered();
+  if (ImGui::Checkbox("Show Border", &bordered)) {
+    sc.set_active_bordered(bordered);
+    if (sc.get_selected_figure()) {
+      sc.execute(new toggle_border_command(sc.get_selected_figure(), bordered));
+    }
+  }
+
   ImGui::Text("Fill Color");
   color fill = sc.get_active_fill_color();
 
@@ -142,6 +178,17 @@ void ui_manager::draw_color_settings(app *application) {
       figure *selected = sc.get_selected_figure();
       selected->set_fill_color(fill_start_color);
       sc.execute(new change_color_command(selected, color_type::fill, fill_start_color, fill));
+    }
+  }
+
+  bool can_fill = sc.get_selected_figure() ? sc.get_selected_figure()->can_fill() : true;
+  if (can_fill) {
+    bool filled = sc.get_selected_figure() ? sc.get_selected_figure()->is_filled() : sc.is_active_filled();
+    if (ImGui::Checkbox("Show Fill", &filled)) {
+      sc.set_active_filled(filled);
+      if (sc.get_selected_figure() && sc.get_selected_figure()->can_fill()) {
+        sc.execute(new toggle_fill_command(sc.get_selected_figure(), filled));
+      }
     }
   }
 

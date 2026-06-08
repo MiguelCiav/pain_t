@@ -52,6 +52,8 @@ void engine_2d::init() {
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330 core");
+	ImGui::GetStyle().Colors[ImGuiCol_WindowBg].w = 1.0f;
+	ImGui::GetStyle().Colors[ImGuiCol_PopupBg].w = 1.0f;
 	return;
 };
 

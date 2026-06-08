@@ -15,6 +15,8 @@
 #include "../pain_t/src/commands/change_color_command.h"
 #include "../pain_t/src/commands/reorder_figures_command.h"
 #include "../pain_t/src/commands/clear_scene_command.h"
+#include "../pain_t/src/commands/toggle_border_command.h"
+#include "../pain_t/src/commands/toggle_fill_command.h"
 #include "../pain_t/src/figures/bezier.h"
 #include "../pain_t/src/tools/bezier_tool.h"
 #include "../pain_t/src/tools/ellipse_tool.h"
@@ -29,13 +31,14 @@ inline app &get_test_app() {
   static app test_app;
   static bool initialized = false;
   if (!initialized) {
+    test_app.set_sidebar_width(0.0);
     test_app.setup();
     initialized = true;
   }
   // Clear figures and deselect on each query
   test_app.get_scene().deselect();
   test_app.get_scene().get_figures().clear();
-  test_app.get_scene().init_tree(test_app.get_width(), test_app.get_height());
+  test_app.get_scene().init_tree(0.0, 0.0, test_app.get_width(), test_app.get_height());
   return test_app;
 }
 
@@ -761,6 +764,114 @@ TEST_CASE("new canvas commands execution and undo/redo", "[commands]") {
   sc.get_figures().clear();
   delete rect1;
   delete rect2;
+}
+
+TEST_CASE("active fill and border settings and toggles", "[scene][commands][tools]") {
+  app &test_app = get_test_app();
+  scene &sc = test_app.get_scene();
+
+  SECTION("default active settings") {
+    REQUIRE(sc.is_active_bordered() == true);
+    REQUIRE(sc.is_active_filled() == true);
+
+    sc.set_active_bordered(false);
+    sc.set_active_filled(false);
+    REQUIRE(sc.is_active_bordered() == false);
+    REQUIRE(sc.is_active_filled() == false);
+
+    // Reset
+    sc.set_active_bordered(true);
+    sc.set_active_filled(true);
+  }
+
+  SECTION("commands toggle border and fill") {
+    rectangle *rect = new rectangle(point(0.0, 0.0), point(100.0, 100.0), color(0.0, 0.0, 0.0), color(1.0, 1.0, 1.0), true, nullptr);
+    sc.add_figure(rect);
+    sc.select(rect);
+
+    REQUIRE(rect->is_bordered() == true);
+    REQUIRE(rect->is_filled() == true);
+
+    sc.execute(new toggle_border_command(rect, false));
+    REQUIRE(rect->is_bordered() == false);
+
+    sc.undo();
+    REQUIRE(rect->is_bordered() == true);
+
+    sc.redo();
+    REQUIRE(rect->is_bordered() == false);
+
+    sc.execute(new toggle_fill_command(rect, false));
+    REQUIRE(rect->is_filled() == false);
+
+    sc.undo();
+    REQUIRE(rect->is_filled() == true);
+
+    sc.redo();
+    REQUIRE(rect->is_filled() == false);
+
+    // Clean up
+    sc.deselect();
+    sc.get_figures().clear();
+    delete rect;
+  }
+
+  SECTION("tools respect active settings when creating figures") {
+    sc.set_active_bordered(false);
+    sc.set_active_filled(false);
+
+    rect_tool r_tool(&test_app, &test_app);
+    r_tool.on_mouse_down(0, point(0.0, 0.0));
+    r_tool.on_mouse_move(point(100.0, 100.0));
+    r_tool.on_mouse_up(0, point(100.0, 100.0));
+
+    REQUIRE(sc.get_figures().size() == 1);
+    figure *rect = sc.get_figures()[0];
+    REQUIRE(rect->is_bordered() == false);
+    REQUIRE(rect->is_filled() == false);
+
+    ellipse_tool e_tool(&test_app, &test_app);
+    e_tool.on_mouse_down(0, point(0.0, 0.0));
+    e_tool.on_mouse_move(point(100.0, 100.0));
+    e_tool.on_mouse_up(0, point(100.0, 100.0));
+
+    REQUIRE(sc.get_figures().size() == 2);
+    figure *ell = sc.get_figures()[1];
+    REQUIRE(ell->is_bordered() == false);
+    REQUIRE(ell->is_filled() == false);
+
+    // Reset settings
+    sc.set_active_bordered(true);
+    sc.set_active_filled(true);
+    sc.get_figures().clear();
+    delete rect;
+    delete ell;
+  }
+}
+
+TEST_CASE("tool icons check", "[tools][icons]") {
+  app &test_app = get_test_app();
+  
+  selection_tool sel_t(&test_app, &test_app);
+  line_tool l_t(&test_app, &test_app);
+  rect_tool r_t(&test_app, &test_app);
+  triangle_tool t_t(&test_app, &test_app);
+  ellipse_tool e_t(&test_app, &test_app);
+  bezier_tool b_t(&test_app, &test_app);
+
+  REQUIRE(!sel_t.get_icon().empty());
+  REQUIRE(!l_t.get_icon().empty());
+  REQUIRE(!r_t.get_icon().empty());
+  REQUIRE(!t_t.get_icon().empty());
+  REQUIRE(!e_t.get_icon().empty());
+  REQUIRE(!b_t.get_icon().empty());
+
+  REQUIRE(sel_t.get_icon().find('/') != std::string::npos);
+  REQUIRE(l_t.get_icon().find('/') != std::string::npos);
+  REQUIRE(r_t.get_icon().find('|') != std::string::npos);
+  REQUIRE(t_t.get_icon().find('/') != std::string::npos);
+  REQUIRE(e_t.get_icon().find('(') != std::string::npos);
+  REQUIRE(b_t.get_icon().find('\\') != std::string::npos);
 }
 
 

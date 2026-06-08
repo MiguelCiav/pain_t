@@ -18,6 +18,11 @@ public:
   void draw_settings() override;
   std::string get_name() override;
   std::string get_label() override { return "Selection Tool"; }
+  std::string get_icon() override {
+    return "  ^  \n"
+           " / \\ \n"
+           "  |  ";
+  }
 
 private:
   bool is_dragging = false;

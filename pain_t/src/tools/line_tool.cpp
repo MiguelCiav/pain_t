@@ -35,6 +35,7 @@ void line_tool::on_mouse_up(int button, point p) {
   figure *new_line =
       new line(starting_point, ending_point,
                application->get_scene().get_active_border_color(), engine);
+  new_line->set_bordered(application->get_scene().is_active_bordered());
 
   i_command *cmd =
       new create_figure_command(&application->get_scene(), new_line);
@@ -50,7 +51,8 @@ void line_tool::draw_preview() {
   }
   line temp_line(starting_point, ending_point,
                  application->get_scene().get_active_border_color(), engine);
-  temp_line.draw_border();
+  temp_line.set_bordered(application->get_scene().is_active_bordered());
+  temp_line.draw();
 }
 
 std::string line_tool::get_name() { return "line_tool"; }

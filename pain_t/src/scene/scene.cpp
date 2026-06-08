@@ -14,7 +14,7 @@ scene::~scene() {
   delete tree;
 }
 
-void scene::init_tree(double width, double height) {
+void scene::init_tree(double x, double y, double width, double height) {
   if (width <= 0 || height <= 0) {
     throw std::invalid_argument(
         "Scene width and height must be greater than zero");
@@ -22,8 +22,8 @@ void scene::init_tree(double width, double height) {
   if (tree) {
     delete tree;
   }
-  tree = new quad_tree(bounding_box(point(0, 0), point(width, 0),
-                                    point(width, height), point(0, height)),
+  tree = new quad_tree(bounding_box(point(x, y), point(x + width, y),
+                                    point(x + width, y + height), point(x, y + height)),
                        0);
   for (figure *fig : figures) {
     tree->insert(fig);

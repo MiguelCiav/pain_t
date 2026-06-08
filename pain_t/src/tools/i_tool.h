@@ -23,4 +23,5 @@ public:
   virtual void draw_settings() {}
   virtual std::string get_name() = 0;
   virtual std::string get_label() = 0;
+  virtual std::string get_icon() = 0;
 };

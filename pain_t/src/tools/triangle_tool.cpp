@@ -26,7 +26,9 @@ void triangle_tool::on_mouse_down(int button, point p) {
     std::vector<point> tri_points = {p1, p2, p3};
     figure *new_tri = new triangle(
         tri_points, application->get_scene().get_active_border_color(),
-        application->get_scene().get_active_fill_color(), true, engine);
+        application->get_scene().get_active_fill_color(),
+        application->get_scene().is_active_filled(), engine);
+    new_tri->set_bordered(application->get_scene().is_active_bordered());
 
     i_command *cmd =
         new create_figure_command(&application->get_scene(), new_tri);
@@ -58,7 +60,9 @@ void triangle_tool::draw_preview() {
     std::vector<point> tri_points = {p1, p2, p3};
     triangle temp_tri(
         tri_points, application->get_scene().get_active_border_color(),
-        application->get_scene().get_active_fill_color(), true, engine);
+        application->get_scene().get_active_fill_color(),
+        application->get_scene().is_active_filled(), engine);
+    temp_tri.set_bordered(application->get_scene().is_active_bordered());
     temp_tri.draw();
   }
 }

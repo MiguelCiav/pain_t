@@ -20,6 +20,7 @@ private:
   std::string status_message = "";
   color status_color = color(0.0f, 0.0f, 0.0f);
   float status_timer = 0.0f;
+  double sidebar_width = 200.0;
   ui_manager gui;
 
   void set_status(const std::string& msg, const color& col);
@@ -53,6 +54,9 @@ public:
   char *get_save_load_path() { return save_load_path; }
   const std::string &get_status_message() const { return status_message; }
   color get_status_color() const { return status_color; }
+
+  double get_sidebar_width() const { return sidebar_width; }
+  void set_sidebar_width(double width) { sidebar_width = width; }
 
   bool is_ctrl_pressed() const {
     return is_key_pressed(GLFW_KEY_LEFT_CONTROL) ||

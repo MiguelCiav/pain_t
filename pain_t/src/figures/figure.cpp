@@ -42,7 +42,9 @@ void figure::draw() {
   if (filled) {
     draw_fill();
   }
-  draw_border();
+  if (bordered) {
+    draw_border();
+  }
 }
 
 bounding_box figure::get_bounding_box() {
@@ -62,7 +64,7 @@ bool figure::inside(point click) const {
   }
   if (this->is_filled() && this->on_filling(click))
     return true;
-  if (this->on_border(click))
+  if (this->is_bordered() && this->on_border(click))
     return true;
   return false;
 }

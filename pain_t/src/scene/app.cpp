@@ -23,7 +23,7 @@ app::~app() {
 // APP SETUP
 void app::setup() {
   clear(main_scene.get_background_color());
-  main_scene.init_tree(get_width(), get_height());
+  main_scene.init_tree(sidebar_width, 0.0, get_width() - sidebar_width, get_height());
   register_tools();
   register_shortcuts();
 }
@@ -81,7 +81,7 @@ void app::register_shortcuts() {
 // UI
 void app::draw_ui() {
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(200, get_height()), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(sidebar_width, get_height()), ImGuiCond_Always);
   ImGui::Begin("Tools", nullptr,
                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                    ImGuiWindowFlags_NoCollapse);

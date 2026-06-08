@@ -49,7 +49,9 @@ void rect_tool::on_mouse_up(int button, point p) {
   figure *new_rect = new rectangle(
       starting_point, adjusted_end,
       application->get_scene().get_active_border_color(),
-      application->get_scene().get_active_fill_color(), true, engine);
+      application->get_scene().get_active_fill_color(),
+      application->get_scene().is_active_filled(), engine);
+  new_rect->set_bordered(application->get_scene().is_active_bordered());
 
   i_command *cmd =
       new create_figure_command(&application->get_scene(), new_rect);
@@ -75,8 +77,10 @@ void rect_tool::draw_preview() {
 
   rectangle temp_rect(starting_point, adjusted_end,
                       application->get_scene().get_active_border_color(),
-                      application->get_scene().get_active_fill_color(), true,
+                      application->get_scene().get_active_fill_color(),
+                      application->get_scene().is_active_filled(),
                       engine);
+  temp_rect.set_bordered(application->get_scene().is_active_bordered());
   temp_rect.draw();
 }
 

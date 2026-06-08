@@ -22,4 +22,10 @@ public:
   void draw_preview() override;
   std::string get_name() override;
   std::string get_label() override { return "Bezier Tool"; }
+  std::string get_icon() override {
+    return "  _      \n"
+           " / \\    \n"
+           "    \\   \n"
+           "     \\_/";
+  }
 };
