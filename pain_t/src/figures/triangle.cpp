@@ -30,38 +30,10 @@ void triangle::draw_fill() {
   if (!filled) {
     return;
   }
-
-  point p1 = control_points[0].get_position();
-  point p2 = control_points[1].get_position();
-  point p3 = control_points[2].get_position();
-
-  if (p1.y > p2.y)
-    std::swap(p1, p2);
-  if (p1.y > p3.y)
-    std::swap(p1, p3);
-  if (p2.y > p3.y)
-    std::swap(p2, p3);
-
-  rasterizer::line::tracer_y line_a;
-  rasterizer::line::tracer_y line_b;
-
-  line_a.init(p1, p3);
-  line_b.init(p1, p2);
-
-  for (int y = p1.y; y <= p3.y; y++) {
-    int x_left = std::min(line_a.x_min, line_b.x_min);
-    int x_right = std::max(line_a.x_max, line_b.x_max);
-
-    rasterizer::line::draw_horizontal(engine, x_left, x_right, y, fill_color);
-
-    line_a.advance_to_next_y();
-    line_b.advance_to_next_y();
-
-    if (y == (int)p2.y) {
-      line_b.init(p2, p3);
-      line_b.advance_to_next_y();
-    }
-  }
+  rasterizer::triangle::draw_fill(engine, control_points[0].get_position(),
+                                  control_points[1].get_position(),
+                                  control_points[2].get_position(),
+                                  fill_color);
 }
 
 bool triangle::on_border(point click) const {

@@ -142,6 +142,37 @@ struct tracer_y {
   }
 };
 } // namespace line
+namespace triangle {
+inline void draw_fill(engine_2d *engine, point p1, point p2, point p3, color fill_color) {
+  if (p1.y > p2.y)
+    std::swap(p1, p2);
+  if (p1.y > p3.y)
+    std::swap(p1, p3);
+  if (p2.y > p3.y)
+    std::swap(p2, p3);
+
+  line::tracer_y line_a;
+  line::tracer_y line_b;
+
+  line_a.init(p1, p3);
+  line_b.init(p1, p2);
+
+  for (int y = p1.y; y <= p3.y; y++) {
+    int x_left = std::min(line_a.x_min, line_b.x_min);
+    int x_right = std::max(line_a.x_max, line_b.x_max);
+
+    line::draw_horizontal(engine, x_left, x_right, y, fill_color);
+
+    line_a.advance_to_next_y();
+    line_b.advance_to_next_y();
+
+    if (y == (int)p2.y) {
+      line_b.init(p2, p3);
+      line_b.advance_to_next_y();
+    }
+  }
+}
+} // namespace triangle
 namespace ellipse {
 inline void draw_8_points(engine_2d *engine, point center, int x, int y,
                           color c, bool fill = false) {

@@ -43,16 +43,18 @@ void rectangle::draw_fill() {
   if (!filled) {
     return;
   }
-  bounding_box bb = this->get_bounding_box();
-  std::vector<point> points = bb.get_bounding_box();
-  double line_x1 = points[0].x;
-  double line_x2 = points[1].x;
-  double line_y1 = points[0].y;
-  double line_y2 = points[2].y;
-  for (double y = line_y1; y < line_y2; y++) {
-    rasterizer::line::draw(engine, point{line_x1, y}, point{line_x2, y},
-                           fill_color);
-  }
+  // Draw Triangle 1 (0, 1, 2)
+  rasterizer::triangle::draw_fill(engine,
+                                  control_points[0].get_position(),
+                                  control_points[1].get_position(),
+                                  control_points[2].get_position(),
+                                  fill_color);
+  // Draw Triangle 2 (0, 2, 3)
+  rasterizer::triangle::draw_fill(engine,
+                                  control_points[0].get_position(),
+                                  control_points[2].get_position(),
+                                  control_points[3].get_position(),
+                                  fill_color);
 }
 
 bool rectangle::on_border(point click) const {
