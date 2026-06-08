@@ -17,6 +17,7 @@
 #include "../pain_t/src/commands/clear_scene_command.h"
 #include "../pain_t/src/commands/toggle_border_command.h"
 #include "../pain_t/src/commands/toggle_fill_command.h"
+#include "../pain_t/src/commands/scale_figure_command.h"
 #include "../pain_t/src/figures/bezier.h"
 #include "../pain_t/src/tools/bezier_tool.h"
 #include "../pain_t/src/tools/ellipse_tool.h"
@@ -872,6 +873,138 @@ TEST_CASE("tool icons check", "[tools][icons]") {
   REQUIRE(t_t.get_icon().find('/') != std::string::npos);
   REQUIRE(e_t.get_icon().find('(') != std::string::npos);
   REQUIRE(b_t.get_icon().find('\\') != std::string::npos);
+}
+
+TEST_CASE("shortcut movement and clipboard features", "[shortcuts]") {
+  app &test_app = get_test_app();
+  GLFWwindow *win = glfwGetCurrentContext();
+  scene &sc = test_app.get_scene();
+
+  // Create a rectangle at (0, 0) to (100, 100)
+  rectangle *rect = new rectangle(point(0, 0), point(100, 100), color(0, 0, 0), color(0, 0, 0), false, &test_app);
+  sc.add_figure(rect);
+  sc.select(rect);
+
+  SECTION("WASD translation shortcuts") {
+    point start_pos = rect->get_control_points()[0].get_position();
+
+    // Trigger W -> should move y by -5
+    test_app.on_key_down(GLFW_KEY_W);
+    REQUIRE(rect->get_control_points()[0].get_y() == start_pos.y - 5.0);
+
+    // Trigger S -> should move y back by +5
+    test_app.on_key_down(GLFW_KEY_S);
+    REQUIRE(rect->get_control_points()[0].get_y() == start_pos.y);
+
+    // Trigger A -> should move x by -5
+    test_app.on_key_down(GLFW_KEY_A);
+    REQUIRE(rect->get_control_points()[0].get_x() == start_pos.x - 5.0);
+
+    // Trigger D -> should move x back by +5
+    test_app.on_key_down(GLFW_KEY_D);
+    REQUIRE(rect->get_control_points()[0].get_x() == start_pos.x);
+  }
+
+  SECTION("clipboard operations (Ctrl+C, Ctrl+V, Ctrl+X)") {
+    REQUIRE(sc.get_figures().size() == 1);
+
+    // Press Ctrl
+    simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_PRESS);
+
+    // Trigger Ctrl+C
+    test_app.on_key_down(GLFW_KEY_C);
+
+    // Release Ctrl
+    simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_RELEASE);
+
+    // Trigger Ctrl+V (paste) -> should clone the figure and offset it by 20, 20
+    simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_PRESS);
+    test_app.on_key_down(GLFW_KEY_V);
+    simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_RELEASE);
+
+    REQUIRE(sc.get_figures().size() == 2);
+    figure *pasted = sc.get_selected_figure();
+    REQUIRE(pasted != rect);
+    REQUIRE(pasted->get_type_tag() == "rectangle");
+    REQUIRE(pasted->get_control_points()[0].get_x() == 20.0);
+    REQUIRE(pasted->get_control_points()[0].get_y() == 20.0);
+
+    // Trigger Ctrl+X (cut) on the pasted figure -> should delete it from scene
+    sc.select(pasted);
+    simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_PRESS);
+    test_app.on_key_down(GLFW_KEY_X);
+    simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_RELEASE);
+
+    REQUIRE(sc.get_figures().size() == 1);
+    REQUIRE(sc.get_selected_figure() == nullptr);
+
+    // Paste again -> should paste the cut figure (offset by 20, 20 from its cut position, i.e. 40, 40)
+    simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_PRESS);
+    test_app.on_key_down(GLFW_KEY_V);
+    simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_RELEASE);
+
+    REQUIRE(sc.get_figures().size() == 2);
+    figure *pasted2 = sc.get_selected_figure();
+    REQUIRE(pasted2 != rect);
+    REQUIRE(pasted2->get_control_points()[0].get_x() == 40.0);
+    REQUIRE(pasted2->get_control_points()[0].get_y() == 40.0);
+  }
+
+  // Cleanup
+  sc.deselect();
+  sc.get_figures().clear();
+}
+
+TEST_CASE("figure scaling and scale_figure_command", "[figure][commands][scale]") {
+  app &test_app = get_test_app();
+  scene &sc = test_app.get_scene();
+
+  rectangle *rect = new rectangle(point(0, 0), point(100, 100), color(0, 0, 0), color(0, 0, 0), false, &test_app);
+  sc.add_figure(rect);
+
+  SECTION("direct scaling of figure") {
+    // Center of (0,0)-(100,0)-(100,100)-(0,100) is (50, 50)
+    REQUIRE(rect->get_center().x == 50.0);
+    REQUIRE(rect->get_center().y == 50.0);
+
+    // Scale by 2.0
+    rect->scale(2.0);
+    // Corners should move outward from (50, 50):
+    // (0,0) -> (50 + -50*2, 50 + -50*2) = (-50, -50)
+    // (100,100) -> (50 + 50*2, 50 + 50*2) = (150, 150)
+    REQUIRE(rect->get_control_points()[0].get_x() == -50.0);
+    REQUIRE(rect->get_control_points()[0].get_y() == -50.0);
+    REQUIRE(rect->get_control_points()[2].get_x() == 150.0);
+    REQUIRE(rect->get_control_points()[2].get_y() == 150.0);
+
+    // Scale back by 0.5
+    rect->scale(0.5);
+    REQUIRE(rect->get_control_points()[0].get_x() == 0.0);
+    REQUIRE(rect->get_control_points()[0].get_y() == 0.0);
+    REQUIRE(rect->get_control_points()[2].get_x() == 100.0);
+    REQUIRE(rect->get_control_points()[2].get_y() == 100.0);
+  }
+
+  SECTION("scale command undo/redo") {
+    sc.select(rect);
+    REQUIRE(rect->get_control_points()[0].get_x() == 0.0);
+
+    // Execute scale command
+    sc.execute(new scale_figure_command(rect, &sc, 1.5));
+    REQUIRE(rect->get_control_points()[0].get_x() == -25.0); // 50 - 50*1.5 = -25
+
+    // Undo scaling
+    sc.undo();
+    REQUIRE(rect->get_control_points()[0].get_x() == 0.0);
+
+    // Redo scaling
+    sc.redo();
+    REQUIRE(rect->get_control_points()[0].get_x() == -25.0);
+  }
+
+  // Cleanup
+  sc.deselect();
+  sc.get_figures().clear();
 }
 
 

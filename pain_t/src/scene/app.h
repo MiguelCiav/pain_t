@@ -22,6 +22,7 @@ private:
   float status_timer = 0.0f;
   double sidebar_width = 200.0;
   ui_manager gui;
+  figure *clipboard = nullptr;
 
   void set_status(const std::string& msg, const color& col);
 

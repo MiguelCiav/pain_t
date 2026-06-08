@@ -28,4 +28,5 @@ public:
   bounding_box get_bounding_box() override;
   point get_center() const override;
   std::string get_type_tag() const override;
+  figure *clone() const override;
 };

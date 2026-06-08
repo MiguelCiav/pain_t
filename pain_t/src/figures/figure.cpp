@@ -68,3 +68,16 @@ bool figure::inside(point click) const {
     return true;
   return false;
 }
+
+void figure::scale(double factor) {
+  if (control_points.empty()) {
+    throw std::logic_error("Cannot scale an empty figure");
+  }
+  point center = get_center();
+  for (auto &cp : control_points) {
+    double dx = cp.get_x() - center.x;
+    double dy = cp.get_y() - center.y;
+    cp.set_x(center.x + dx * factor);
+    cp.set_y(center.y + dy * factor);
+  }
+}

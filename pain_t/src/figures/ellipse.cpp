@@ -98,3 +98,14 @@ bounding_box ellipse::get_bounding_box() {
 }
 
 std::string ellipse::get_type_tag() const { return "ellipse"; }
+
+figure *ellipse::clone() const {
+  std::vector<point> pts;
+  for (const auto &cp : control_points) {
+    pts.push_back(cp.get_position());
+  }
+  ellipse *cloned = new ellipse(pts, border_color, fill_color, filled, engine);
+  cloned->set_bordered(bordered);
+  cloned->set_z_index(z_index);
+  return cloned;
+}

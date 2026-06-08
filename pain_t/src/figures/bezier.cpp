@@ -76,6 +76,17 @@ bool bezier::on_filling(point click) const { return false; }
 
 std::string bezier::get_type_tag() const { return "bezier"; }
 
+figure *bezier::clone() const {
+  std::vector<point> pts;
+  for (const auto &cp : control_points) {
+    pts.push_back(cp.get_position());
+  }
+  bezier *cloned = new bezier(pts, border_color, engine);
+  cloned->set_bordered(bordered);
+  cloned->set_z_index(z_index);
+  return cloned;
+}
+
 void bezier::increase_degree() {
   if (control_points.size() < 3) {
     throw std::logic_error(

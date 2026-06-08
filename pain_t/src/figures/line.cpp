@@ -33,3 +33,10 @@ bool line::on_border(point click) const {
 bool line::on_filling(point click) const { return false; };
 
 std::string line::get_type_tag() const { return "line"; }
+
+figure *line::clone() const {
+  line *cloned = new line(control_points[0].get_position(), control_points[1].get_position(), border_color, engine);
+  cloned->set_bordered(bordered);
+  cloned->set_z_index(z_index);
+  return cloned;
+}

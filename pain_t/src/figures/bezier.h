@@ -24,6 +24,7 @@ public:
   bool on_border(point click) const override;
   bool on_filling(point click) const override;
   std::string get_type_tag() const override;
+  figure *clone() const override;
 
   // SPECIAL
   void increase_degree();

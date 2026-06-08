@@ -81,3 +81,14 @@ bool rectangle::on_filling(point click) const {
 };
 
 std::string rectangle::get_type_tag() const { return "rectangle"; }
+
+figure *rectangle::clone() const {
+  std::vector<point> pts;
+  for (const auto &cp : control_points) {
+    pts.push_back(cp.get_position());
+  }
+  rectangle *cloned = new rectangle(pts, border_color, fill_color, filled, engine);
+  cloned->set_bordered(bordered);
+  cloned->set_z_index(z_index);
+  return cloned;
+}

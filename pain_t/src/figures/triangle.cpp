@@ -60,3 +60,14 @@ bool triangle::on_filling(point click) const {
 };
 
 std::string triangle::get_type_tag() const { return "triangle"; }
+
+figure *triangle::clone() const {
+  std::vector<point> pts;
+  for (const auto &cp : control_points) {
+    pts.push_back(cp.get_position());
+  }
+  triangle *cloned = new triangle(pts, border_color, fill_color, filled, engine);
+  cloned->set_bordered(bordered);
+  cloned->set_z_index(z_index);
+  return cloned;
+}

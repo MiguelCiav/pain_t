@@ -18,3 +18,7 @@ target_link_libraries(pain_t PRIVATE
     imgui
     OpenGL::GL
 )
+
+if (WIN32)
+    target_link_libraries(pain_t PRIVATE comdlg32)
+endif()

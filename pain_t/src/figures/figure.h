@@ -72,4 +72,6 @@ public:
   virtual void draw_fill() = 0;
   virtual bool inside(point click) const;
   virtual std::string get_type_tag() const = 0;
+  virtual figure *clone() const = 0;
+  virtual void scale(double factor);
 };

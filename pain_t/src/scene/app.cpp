@@ -1,5 +1,7 @@
 #include "app.h"
 #include "../commands/delete_figure_command.h"
+#include "../commands/move_figure_command.h"
+#include "../commands/create_figure_command.h"
 #include "../figures/figure.h"
 #include "../figures/line.h"
 #include "../figures/rectangle.h"
@@ -18,6 +20,7 @@ app::~app() {
   for (i_tool *tool : tools) {
     delete tool;
   }
+  delete clipboard;
 }
 
 // APP SETUP
@@ -76,6 +79,60 @@ void app::register_shortcuts() {
   });
   s_manager.register_shortcut(GLFW_KEY_S, true, [this]() { save_scene(); });
   s_manager.register_shortcut(GLFW_KEY_O, true, [this]() { load_scene(); });
+
+  // WASD translation shortcuts
+  s_manager.register_shortcut(GLFW_KEY_W, false, [this]() {
+    figure *selected = main_scene.get_selected_figure();
+    if (selected) {
+      main_scene.execute(new move_figure_command(selected, &main_scene, point(0.0, -5.0)));
+    }
+  });
+  s_manager.register_shortcut(GLFW_KEY_S, false, [this]() {
+    figure *selected = main_scene.get_selected_figure();
+    if (selected) {
+      main_scene.execute(new move_figure_command(selected, &main_scene, point(0.0, 5.0)));
+    }
+  });
+  s_manager.register_shortcut(GLFW_KEY_A, false, [this]() {
+    figure *selected = main_scene.get_selected_figure();
+    if (selected) {
+      main_scene.execute(new move_figure_command(selected, &main_scene, point(-5.0, 0.0)));
+    }
+  });
+  s_manager.register_shortcut(GLFW_KEY_D, false, [this]() {
+    figure *selected = main_scene.get_selected_figure();
+    if (selected) {
+      main_scene.execute(new move_figure_command(selected, &main_scene, point(5.0, 0.0)));
+    }
+  });
+
+  // Clipboard shortcuts
+  s_manager.register_shortcut(GLFW_KEY_C, true, [this]() {
+    figure *selected = main_scene.get_selected_figure();
+    if (selected) {
+      delete clipboard;
+      clipboard = selected->clone();
+    }
+  });
+  s_manager.register_shortcut(GLFW_KEY_X, true, [this]() {
+    figure *selected = main_scene.get_selected_figure();
+    if (selected) {
+      delete clipboard;
+      clipboard = selected->clone();
+      main_scene.execute(new delete_figure_command(&main_scene, selected));
+    }
+  });
+  s_manager.register_shortcut(GLFW_KEY_V, true, [this]() {
+    if (clipboard) {
+      figure *pasted = clipboard->clone();
+      pasted->move(point(20.0, 20.0));
+      delete clipboard;
+      clipboard = pasted->clone();
+
+      main_scene.execute(new create_figure_command(&main_scene, pasted));
+      main_scene.select(pasted);
+    }
+  });
 }
 
 // UI

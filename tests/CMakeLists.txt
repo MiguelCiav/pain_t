@@ -16,6 +16,10 @@ target_link_libraries(run_tests PRIVATE
     OpenGL::GL
 )
 
+if (WIN32)
+    target_link_libraries(run_tests PRIVATE comdlg32)
+endif()
+
 target_include_directories(run_tests PRIVATE 
     ${CMAKE_SOURCE_DIR}/pain_t/src
 )

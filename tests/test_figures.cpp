@@ -27,6 +27,12 @@ public:
     bool on_filling(point click) const override { return false; }
     bounding_box get_bounding_box() override { return {}; }
     std::string get_type_tag() const override { return "dummy"; }
+    figure* clone() const override {
+        dummy_figure* cloned = new dummy_figure(border_color, fill_color, filled, engine);
+        cloned->set_bordered(bordered);
+        cloned->set_z_index(z_index);
+        return cloned;
+    }
     void add_test_control_point(double x, double y) {
         control_points.push_back(control_point(point{x, y}));
     }
@@ -48,6 +54,12 @@ public:
     bool on_filling(point click) const override { return false; }
     bounding_box get_bounding_box() override { return {}; }
     std::string get_type_tag() const override { return "draw_test"; }
+    figure* clone() const override {
+        draw_test_figure* cloned = new draw_test_figure(border_color, fill_color, filled, engine);
+        cloned->set_bordered(bordered);
+        cloned->set_z_index(z_index);
+        return cloned;
+    }
 };
 
 TEST_CASE("color struct coverage", "[color]") {
