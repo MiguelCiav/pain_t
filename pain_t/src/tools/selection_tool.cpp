@@ -8,6 +8,8 @@
 #include "../scene/app.h"
 #include "../scene/scene.h"
 #include "commands/increase_degree_command.h"
+#include "commands/move_figure_command.h"
+#include "commands/deform_figure_command.h"
 #include <imgui.h>
 #include <string>
 
@@ -24,6 +26,7 @@ bool selection_tool::try_select_control_point(figure *selected, point p) {
     if (algebra::distance(p, cp_pos) <= 6.0) {
       is_deforming = true;
       active_control_point_idx = static_cast<int>(i);
+      deform_start_pos = cp_pos;
       last_mouse_point = p;
       return true;
     }
@@ -35,6 +38,7 @@ bool selection_tool::try_select_center(figure *selected, point p) {
   point center = selected->get_bounding_box().get_center();
   if (algebra::distance(p, center) <= 6.0) {
     is_dragging = true;
+    cumulative_shift = point{0, 0};
     last_mouse_point = p;
     return true;
   }
@@ -94,6 +98,7 @@ void selection_tool::drag_figure(figure *selected, point p) {
   if (selected) {
     point shift = p - last_mouse_point;
     selected->move(shift);
+    cumulative_shift = cumulative_shift + shift;
     application->get_scene().notify_figure_moved(selected);
     last_mouse_point = p;
   }
@@ -110,6 +115,19 @@ void selection_tool::on_mouse_move(point p) {
 
 void selection_tool::on_mouse_up(int button, point p) {
   if (button == 0) {
+    figure *selected = application->get_scene().get_selected_figure();
+    if (is_dragging && selected) {
+      if (cumulative_shift.x != 0 || cumulative_shift.y != 0) {
+        selected->move(-cumulative_shift);
+        application->get_scene().execute(new move_figure_command(selected, &application->get_scene(), cumulative_shift));
+      }
+    } else if (is_deforming && selected && active_control_point_idx >= 0) {
+      point current_pos = selected->get_control_points()[active_control_point_idx].get_position();
+      if (!(current_pos == deform_start_pos)) {
+        selected->get_control_points()[active_control_point_idx].set_position(deform_start_pos);
+        application->get_scene().execute(new deform_figure_command(selected, &application->get_scene(), active_control_point_idx, deform_start_pos, current_pos));
+      }
+    }
     is_dragging = false;
     is_deforming = false;
     active_control_point_idx = -1;
@@ -243,17 +261,9 @@ void selection_tool::draw_settings() {
     }
 
     if (changed) {
-      if (selected->get_type_tag() == "ellipse") {
-        point center = control_pts[0].get_position();
-        if (i == 1) {
-          control_pts[i].set_position(center.x, y);
-        } else if (i == 2) {
-          control_pts[i].set_position(x, center.y);
-        }
-      } else {
-        control_pts[i].set_position(x, y);
-      }
-      application->get_scene().notify_figure_moved(selected);
+      point old_pos = control_pts[i].get_position();
+      point new_pos = point{x, y};
+      application->get_scene().execute(new deform_figure_command(selected, &application->get_scene(), static_cast<int>(i), old_pos, new_pos));
     }
 
     ImGui::PopID();

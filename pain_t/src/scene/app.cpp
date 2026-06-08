@@ -1,5 +1,8 @@
 #include "app.h"
 #include "../commands/delete_figure_command.h"
+#include "../commands/clear_scene_command.h"
+#include "../commands/reorder_figures_command.h"
+#include "../commands/change_color_command.h"
 #include "../figures/figure.h"
 #include "../figures/line.h"
 #include "../figures/rectangle.h"
@@ -142,7 +145,9 @@ void app::draw_canvas_actions() {
   ImGui::Separator();
 
   if (ImGui::Button("Clear Scene")) {
-    main_scene.clear();
+    if (!main_scene.get_figures().empty()) {
+      main_scene.execute(new clear_scene_command(&main_scene));
+    }
   }
 
   if (ImGui::Button("undo")) {
@@ -181,18 +186,60 @@ void app::draw_color_settings() {
 
   ImGui::Text("Border Color");
   color border = main_scene.get_active_border_color();
+
+  static color border_start_color;
+  static bool border_color_active = false;
+
   if (ImGui::ColorEdit3("##Border Color", &border.r)) {
+    if (!border_color_active) {
+      if (main_scene.get_selected_figure()) {
+        border_start_color = main_scene.get_selected_figure()->get_border_color();
+      } else {
+        border_start_color = main_scene.get_active_border_color();
+      }
+      border_color_active = true;
+    }
     main_scene.set_active_border_color(border);
     if (main_scene.get_selected_figure())
       main_scene.get_selected_figure()->set_border_color(border);
   }
 
+  if (ImGui::IsItemDeactivatedAfterEdit()) {
+    border_color_active = false;
+    if (main_scene.get_selected_figure()) {
+      figure *selected = main_scene.get_selected_figure();
+      selected->set_border_color(border_start_color);
+      main_scene.execute(new change_color_command(selected, color_type::border, border_start_color, border));
+    }
+  }
+
   ImGui::Text("Fill Color");
   color fill = main_scene.get_active_fill_color();
+
+  static color fill_start_color;
+  static bool fill_color_active = false;
+
   if (ImGui::ColorEdit3("##Fill Color", &fill.r)) {
+    if (!fill_color_active) {
+      if (main_scene.get_selected_figure()) {
+        fill_start_color = main_scene.get_selected_figure()->get_fill_color();
+      } else {
+        fill_start_color = main_scene.get_active_fill_color();
+      }
+      fill_color_active = true;
+    }
     main_scene.set_active_fill_color(fill);
     if (main_scene.get_selected_figure())
       main_scene.get_selected_figure()->set_fill_color(fill);
+  }
+
+  if (ImGui::IsItemDeactivatedAfterEdit()) {
+    fill_color_active = false;
+    if (main_scene.get_selected_figure()) {
+      figure *selected = main_scene.get_selected_figure();
+      selected->set_fill_color(fill_start_color);
+      main_scene.execute(new change_color_command(selected, color_type::fill, fill_start_color, fill));
+    }
   }
 
   ImGui::Text("Background Color");
@@ -239,8 +286,7 @@ void app::draw_layers_panel() {
 
         int source_idx = size - 1 - source_n;
         int target_idx = size - 1 - target_n;
-
-        main_scene.reorder_figures(source_idx, target_idx);
+        main_scene.execute(new reorder_figures_command(&main_scene, source_idx, target_idx));
       }
       ImGui::EndDragDropTarget();
     }

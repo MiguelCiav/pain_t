@@ -11,6 +11,9 @@ struct point {
   point operator-(const point &other) const {
     return point(x - other.x, y - other.y);
   }
+  point operator-() const {
+    return point(-x, -y);
+  }
   point operator*(double scalar) const { return point(x * scalar, y * scalar); }
   bool operator==(const point &other) const {
     return x == other.x && y == other.y;

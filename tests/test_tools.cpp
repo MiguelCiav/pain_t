@@ -10,6 +10,11 @@
 #include "../pain_t/src/scene/app.h"
 #include "../pain_t/src/scene/scene.h"
 #include "../pain_t/src/commands/increase_degree_command.h"
+#include "../pain_t/src/commands/move_figure_command.h"
+#include "../pain_t/src/commands/deform_figure_command.h"
+#include "../pain_t/src/commands/change_color_command.h"
+#include "../pain_t/src/commands/reorder_figures_command.h"
+#include "../pain_t/src/commands/clear_scene_command.h"
 #include "../pain_t/src/figures/bezier.h"
 #include "../pain_t/src/tools/bezier_tool.h"
 #include "../pain_t/src/tools/ellipse_tool.h"
@@ -658,6 +663,104 @@ TEST_CASE("increase_degree_command execution and undo/redo", "[commands]") {
   // Redo degree elevation
   sc.redo();
   REQUIRE(b->get_control_points().size() == 4);
+}
+
+TEST_CASE("new canvas commands execution and undo/redo", "[commands]") {
+  app &test_app = get_test_app();
+  scene &sc = test_app.get_scene();
+  sc.get_figures().clear();
+  sc.deselect();
+
+  // Create two rectangle figures
+  rectangle *rect1 = new rectangle(point(0, 0), point(10, 10), color(1, 0, 0), color(0, 1, 0), true, &test_app);
+  rectangle *rect2 = new rectangle(point(20, 20), point(30, 30), color(0, 0, 1), color(1, 1, 0), true, &test_app);
+  sc.add_figure(rect1);
+  sc.add_figure(rect2);
+
+  SECTION("move_figure_command") {
+    point delta(5.0, -10.0);
+    point old_pos = rect1->get_center();
+    
+    sc.execute(new move_figure_command(rect1, &sc, delta));
+    REQUIRE(rect1->get_center().x == old_pos.x + 5.0);
+    REQUIRE(rect1->get_center().y == old_pos.y - 10.0);
+
+    sc.undo();
+    REQUIRE(rect1->get_center().x == old_pos.x);
+    REQUIRE(rect1->get_center().y == old_pos.y);
+
+    sc.redo();
+    REQUIRE(rect1->get_center().x == old_pos.x + 5.0);
+    REQUIRE(rect1->get_center().y == old_pos.y - 10.0);
+  }
+
+  SECTION("deform_figure_command") {
+    point old_cp = rect1->get_control_points()[1].get_position();
+    point new_cp(15.0, 25.0);
+
+    sc.execute(new deform_figure_command(rect1, &sc, 1, old_cp, new_cp));
+    REQUIRE(rect1->get_control_points()[1].get_position().x == 15.0);
+    REQUIRE(rect1->get_control_points()[1].get_position().y == 25.0);
+
+    sc.undo();
+    REQUIRE(rect1->get_control_points()[1].get_position().x == old_cp.x);
+    REQUIRE(rect1->get_control_points()[1].get_position().y == old_cp.y);
+
+    sc.redo();
+    REQUIRE(rect1->get_control_points()[1].get_position().x == 15.0);
+    REQUIRE(rect1->get_control_points()[1].get_position().y == 25.0);
+  }
+
+  SECTION("change_color_command") {
+    color old_c = rect1->get_border_color();
+    color new_c(0.2f, 0.4f, 0.6f);
+
+    sc.execute(new change_color_command(rect1, color_type::border, old_c, new_c));
+    REQUIRE(rect1->get_border_color() == new_c);
+
+    sc.undo();
+    REQUIRE(rect1->get_border_color() == old_c);
+
+    sc.redo();
+    REQUIRE(rect1->get_border_color() == new_c);
+  }
+
+  SECTION("reorder_figures_command") {
+    REQUIRE(sc.get_figures()[0] == rect1);
+    REQUIRE(sc.get_figures()[1] == rect2);
+
+    sc.execute(new reorder_figures_command(&sc, 0, 1));
+    REQUIRE(sc.get_figures()[0] == rect2);
+    REQUIRE(sc.get_figures()[1] == rect1);
+
+    sc.undo();
+    REQUIRE(sc.get_figures()[0] == rect1);
+    REQUIRE(sc.get_figures()[1] == rect2);
+
+    sc.redo();
+    REQUIRE(sc.get_figures()[0] == rect2);
+    REQUIRE(sc.get_figures()[1] == rect1);
+  }
+
+  SECTION("clear_scene_command") {
+    REQUIRE(sc.get_figures().size() == 2);
+
+    sc.execute(new clear_scene_command(&sc));
+    REQUIRE(sc.get_figures().empty());
+
+    sc.undo();
+    REQUIRE(sc.get_figures().size() == 2);
+    REQUIRE(sc.get_figures()[0] == rect1);
+    REQUIRE(sc.get_figures()[1] == rect2);
+
+    sc.redo();
+    REQUIRE(sc.get_figures().empty());
+  }
+
+  sc.deselect();
+  sc.get_figures().clear();
+  delete rect1;
+  delete rect2;
 }
 
 
