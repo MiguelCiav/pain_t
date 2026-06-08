@@ -197,7 +197,11 @@ std::string selection_tool::get_name() { return "selection_tool"; }
 
 void selection_tool::draw_settings() {
   figure *selected = application->get_scene().get_selected_figure();
-  if (selected && selected->get_type_tag() == "bezier") {
+  if (!selected) {
+    return;
+  }
+
+  if (selected->get_type_tag() == "bezier") {
     ImGui::Separator();
     ImGui::Text("Bezier Options");
 
@@ -207,5 +211,51 @@ void selection_tool::draw_settings() {
         application->get_scene().execute(new increase_degree_command(b, &application->get_scene()));
       }
     }
+  }
+
+  ImGui::Separator();
+  ImGui::Text("Control Points");
+
+  std::vector<control_point> &control_pts = selected->get_control_points();
+  for (size_t i = 0; i < control_pts.size(); ++i) {
+    if (selected->get_type_tag() == "ellipse" && i == 0) {
+      continue;
+    }
+
+    double x = control_pts[i].get_x();
+    double y = control_pts[i].get_y();
+
+    ImGui::PushID(static_cast<int>(i));
+    
+    std::string cp_label = "CP " + std::to_string(i);
+    ImGui::Text("%s", cp_label.c_str());
+    ImGui::SameLine();
+
+    bool changed = false;
+    ImGui::SetNextItemWidth(60.0f);
+    if (ImGui::InputDouble("##X", &x, 0.0, 0.0, "%.1f")) {
+      changed = true;
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(60.0f);
+    if (ImGui::InputDouble("##Y", &y, 0.0, 0.0, "%.1f")) {
+      changed = true;
+    }
+
+    if (changed) {
+      if (selected->get_type_tag() == "ellipse") {
+        point center = control_pts[0].get_position();
+        if (i == 1) {
+          control_pts[i].set_position(center.x, y);
+        } else if (i == 2) {
+          control_pts[i].set_position(x, center.y);
+        }
+      } else {
+        control_pts[i].set_position(x, y);
+      }
+      application->get_scene().notify_figure_moved(selected);
+    }
+
+    ImGui::PopID();
   }
 }
