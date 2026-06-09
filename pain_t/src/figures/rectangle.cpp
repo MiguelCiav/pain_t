@@ -43,13 +43,11 @@ void rectangle::draw_fill() {
   if (!filled) {
     return;
   }
-  // Draw Triangle 1 (0, 1, 2)
   rasterizer::triangle::draw_fill(engine,
                                   control_points[0].get_position(),
                                   control_points[1].get_position(),
                                   control_points[2].get_position(),
                                   fill_color);
-  // Draw Triangle 2 (0, 2, 3)
   rasterizer::triangle::draw_fill(engine,
                                   control_points[0].get_position(),
                                   control_points[2].get_position(),

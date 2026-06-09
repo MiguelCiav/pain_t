@@ -141,25 +141,21 @@ std::pair<std::vector<point>, std::vector<point>> bezier::subdivide(double t) co
   int n = pts.size();
   std::vector<std::vector<point>> triangle(n, std::vector<point>(n));
 
-  // Initialize first row
   for (int i = 0; i < n; ++i) {
     triangle[0][i] = pts[i];
   }
 
-  // Compute intermediate rows
   for (int r = 1; r < n; ++r) {
     for (int i = 0; i < n - r; ++i) {
       triangle[r][i] = (1.0 - t) * triangle[r - 1][i] + t * triangle[r - 1][i + 1];
     }
   }
 
-  // Left curve points are the first elements of each row
   std::vector<point> left_pts;
   for (int r = 0; r < n; ++r) {
     left_pts.push_back(triangle[r][0]);
   }
 
-  // Right curve points are the last elements of each row in reverse
   std::vector<point> right_pts;
   for (int r = n - 1; r >= 0; --r) {
     right_pts.push_back(triangle[r][n - 1 - r]);

@@ -7,94 +7,151 @@ Depends on: `figures`, `scene`.
 classDiagram
     %% External stubs
     class figure { <<abstract>> }
-    class control_point
+    class bezier
     class scene
 
     class i_command {
         <<interface>>
-        + execute()
-        + undo()
+        + execute()*
+        + undo()*
     }
 
     class command_history {
-        - undo_stack: stack~shared_ptr~i_command~~
-        - redo_stack: stack~shared_ptr~i_command~~
-        + add(cmd: shared_ptr~i_command~)
+        - undo_stack: stack~i_command*~
+        - redo_stack: stack~i_command*~
+        + add(cmd: i_command*)
         + undo()
         + redo()
+        + clear()
         + can_undo() bool
         + can_redo() bool
     }
 
     class create_figure_command {
-        - scene: scene&
-        - figure: shared_ptr~figure~
+        - _scene: scene*
+        - _figure: figure*
+        - _owns_figure: bool
+        + execute()
+        + undo()
     }
 
     class delete_figure_command {
-        - scene: scene&
-        - figure: shared_ptr~figure~
+        - _scene: scene*
+        - _figure: figure*
+        - _owns_figure: bool
+        + execute()
+        + undo()
     }
 
     class move_figure_command {
-        - scene: scene&
-        - figure: shared_ptr~figure~
-        - delta: point
+        - _scene: scene*
+        - _figure: figure*
+        - _delta: point
+        + execute()
+        + undo()
     }
 
-    class move_control_point_command {
-        - scene: scene&
-        - figure: shared_ptr~figure~
-        - cp: control_point*
-        - old_pos: point
-        - new_pos: point
+    class deform_figure_command {
+        - _scene: scene*
+        - _figure: figure*
+        - _old_points: vector~point~
+        - _new_points: vector~point~
+        + execute()
+        + undo()
     }
 
-    class set_color_command {
-        - figure: shared_ptr~figure~
-        - old_border: color
-        - new_border: color
-        - old_fill: color
-        - new_fill: color
+    class change_color_command {
+        - _figure: figure*
+        - _type: color_type
+        - _old_color: color
+        - _new_color: color
+        + execute()
+        + undo()
     }
 
-    class set_background_color_command {
-        - scene: scene&
-        - old_color: color
-        - new_color: color
+    class clear_scene_command {
+        - _scene: scene*
+        - _figures: vector~figure*~
+        - _selected_figure: figure*
+        - _owns_figures: bool
+        + execute()
+        + undo()
     }
 
-    class change_z_index_command {
-        - scene: scene&
-        - figure: shared_ptr~figure~
-        - old_z: int
-        - new_z: int
+    class increase_degree_command {
+        - _bezier: bezier*
+        - _scene: scene*
+        - _old_control_points: vector~control_point~
+        - _new_control_points: vector~control_point~
+        + execute()
+        + undo()
     }
 
-    class clear_canvas_command {
-        - scene: scene&
-        - snapshot: vector~shared_ptr~figure~~
+    class reorder_figures_command {
+        - _scene: scene*
+        - _source_idx: int
+        - _target_idx: int
+        + execute()
+        + undo()
+    }
+
+    class scale_figure_command {
+        - _figure: figure*
+        - _scene: scene*
+        - _factor: double
+        + execute()
+        + undo()
+    }
+
+    class subdivide_bezier_command {
+        - _scene: scene*
+        - _original: bezier*
+        - _left: bezier*
+        - _right: bezier*
+        - _is_executed: bool
+        + execute()
+        + undo()
+    }
+
+    class toggle_border_command {
+        - _figure: figure*
+        - _old_val: bool
+        - _new_val: bool
+        + execute()
+        + undo()
+    }
+
+    class toggle_fill_command {
+        - _figure: figure*
+        - _old_val: bool
+        - _new_val: bool
+        + execute()
+        + undo()
     }
 
     i_command <|-- create_figure_command
     i_command <|-- delete_figure_command
     i_command <|-- move_figure_command
-    i_command <|-- move_control_point_command
-    i_command <|-- set_color_command
-    i_command <|-- set_background_color_command
-    i_command <|-- change_z_index_command
-    i_command <|-- clear_canvas_command
+    i_command <|-- deform_figure_command
+    i_command <|-- change_color_command
+    i_command <|-- clear_scene_command
+    i_command <|-- increase_degree_command
+    i_command <|-- reorder_figures_command
+    i_command <|-- scale_figure_command
+    i_command <|-- subdivide_bezier_command
+    i_command <|-- toggle_border_command
+    i_command <|-- toggle_fill_command
 
     command_history o-- i_command
 
-    create_figure_command          --> scene
-    delete_figure_command          --> scene
-    move_figure_command            --> scene
-    set_background_color_command   --> scene
-    change_z_index_command         --> scene
-    clear_canvas_command           --> scene
-    move_control_point_command     --> control_point
-    set_color_command              --> figure
+    create_figure_command      --> scene
+    delete_figure_command      --> scene
+    move_figure_command        --> scene
+    clear_scene_command        --> scene
+    reorder_figures_command    --> scene
+    deform_figure_command      --> scene
+    subdivide_bezier_command   --> scene
+    change_color_command       --> figure
 ```
 
 ## Notes
@@ -133,34 +190,18 @@ undo():    figure.translate(-delta)
 One command pushed per complete drag (on mouse_up), not per pixel.
 shared_ptr keeps figure alive through delete/undo sequences.
 
-### `move_control_point_command`
+### `move_control_point_command` / `deform_figure_command`
 
 Used when dragging an individual control point (deformation).
-execute(): cp.set_position(new_pos)
-           scene.notify_figure_moved(figure)
-undo():    cp.set_position(old_pos)
-           scene.notify_figure_moved(figure)
 One command pushed per complete drag (on mouse_up), not per pixel.
-cp* is safe: owned by figure, which is kept alive by shared_ptr.
 
-### `set_color_command`
+### `change_color_command`
 
 Captures both border and fill so a single
 command handles any color change.
 shared_ptr keeps figure alive through delete/undo sequences.
 
-### `set_background_color_command`
-
-execute(): scene.set_background_color(new_color)
-undo():    scene.set_background_color(old_color)
-
-### `change_z_index_command`
-
-execute(): figure->z_index = new_z, scene re-sorts figures.
-undo():    figure->z_index = old_z, scene re-sorts figures.
-shared_ptr keeps figure alive through delete/undo sequences.
-
-### `clear_canvas_command`
+### `clear_scene_command`
 
 execute(): snapshot = scene.get_all_figures()
           scene.clear_all_figures()
@@ -168,4 +209,3 @@ undo():    for each f in snapshot: scene.add_figure(f)
 Re-snapshots on every execute() call, so redo is safe:
 after undo() the scene is restored, and the next
 execute() snapshots the same list and clears again.
-

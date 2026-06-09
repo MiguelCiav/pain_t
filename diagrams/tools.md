@@ -17,76 +17,115 @@ classDiagram
 
     class i_tool {
         <<interface>>
-        + on_mouse_down(button: int, x: double, y: double, scene: scene&)*
-        + on_mouse_move(x: double, y: double, scene: scene&)*
-        + on_mouse_up(button: int, x: double, y: double, scene: scene&)*
-        + on_key_down(key: int, scene: scene&)*
-        + draw_preview(canvas: i_canvas&)*
+        # engine_2d* engine
+        # app* application
+        + on_mouse_down(button: int, p: point)*
+        + on_mouse_move(p: point)*
+        + on_mouse_up(button: int, p: point)*
+        + on_key_down(key: int)*
+        + reset()
+        + draw_preview()*
+        + draw_settings()
         + get_name() string*
-        + reset()*
+        + get_label() string*
+        + get_icon() string*
     }
 
     class selection_tool {
-        - phase: selection_phase
-        - dragged_cp: control_point*
-        + on_mouse_down(button: int, x: double, y: double, scene: scene&)
-        + on_mouse_move(x: double, y: double, scene: scene&)
-        + on_mouse_up(button: int, x: double, y: double, scene: scene&)
-        + on_key_down(key: int, scene: scene&)
-        + draw_preview(canvas: i_canvas&)
+        - is_dragging: bool
+        - last_mouse_point: point
+        - cumulative_shift: point
+        - is_deforming: bool
+        - active_control_point_idx: int
+        - deform_start_pos: point
+        - deform_start_points: vector~point~
+        - subdivision_t: float
+        + on_mouse_down(button: int, p: point)
+        + on_mouse_move(p: point)
+        + on_mouse_up(button: int, p: point)
+        + on_key_down(key: int)
+        + reset()
+        + draw_preview()
+        + draw_settings()
         + get_name() string
+        + get_label() string
+        + get_icon() string
     }
 
     class line_tool {
-        - preview: unique_ptr~line~
-        + on_mouse_down(button: int, x: double, y: double, scene: scene&)
-        + on_mouse_move(x: double, y: double, scene: scene&)
-        + on_mouse_up(button: int, x: double, y: double, scene: scene&)
-        + on_key_down(key: int, scene: scene&)
-        + draw_preview(canvas: i_canvas&)
+        - is_drawing: bool
+        - starting_point: point
+        - ending_point: point
+        + on_mouse_down(button: int, p: point)
+        + on_mouse_move(p: point)
+        + on_mouse_up(button: int, p: point)
+        + on_key_down(key: int)
+        + reset()
+        + draw_preview()
         + get_name() string
+        + get_label() string
+        + get_icon() string
     }
 
     class rect_tool {
-        - preview: unique_ptr~rectangle~
-        - constrain: bool
-        + on_mouse_down(button: int, x: double, y: double, scene: scene&)
-        + on_mouse_move(x: double, y: double, scene: scene&)
-        + on_mouse_up(button: int, x: double, y: double, scene: scene&)
-        + on_key_down(key: int, scene: scene&)
-        + draw_preview(canvas: i_canvas&)
+        - is_drawing: bool
+        - starting_point: point
+        - ending_point: point
+        + on_mouse_down(button: int, p: point)
+        + on_mouse_move(p: point)
+        + on_mouse_up(button: int, p: point)
+        + on_key_down(key: int)
+        + reset()
+        + draw_preview()
         + get_name() string
+        + get_label() string
+        + get_icon() string
     }
 
     class ellipse_tool {
-        - preview: unique_ptr~ellipse~
-        - constrain: bool
-        + on_mouse_down(button: int, x: double, y: double, scene: scene&)
-        + on_mouse_move(x: double, y: double, scene: scene&)
-        + on_mouse_up(button: int, x: double, y: double, scene: scene&)
-        + on_key_down(key: int, scene: scene&)
-        + draw_preview(canvas: i_canvas&)
+        - is_drawing: bool
+        - starting_point: point
+        - ending_point: point
+        + on_mouse_down(button: int, p: point)
+        + on_mouse_move(p: point)
+        + on_mouse_up(button: int, p: point)
+        + on_key_down(key: int)
+        + reset()
+        + draw_preview()
         + get_name() string
+        + get_label() string
+        + get_icon() string
     }
 
     class triangle_tool {
-        - preview: unique_ptr~triangle~
-        + on_mouse_down(button: int, x: double, y: double, scene: scene&)
-        + on_mouse_move(x: double, y: double, scene: scene&)
-        + on_mouse_up(button: int, x: double, y: double, scene: scene&)
-        + on_key_down(key: int, scene: scene&)
-        + draw_preview(canvas: i_canvas&)
+        - state: int
+        - p1: point
+        - p2: point
+        - p3: point
+        + on_mouse_down(button: int, p: point)
+        + on_mouse_move(p: point)
+        + on_mouse_up(button: int, p: point)
+        + on_key_down(key: int)
+        + reset()
+        + draw_preview()
         + get_name() string
+        + get_label() string
+        + get_icon() string
     }
 
     class bezier_tool {
-        - preview: unique_ptr~bezier_curve~
-        + on_mouse_down(button: int, x: double, y: double, scene: scene&)
-        + on_mouse_move(x: double, y: double, scene: scene&)
-        + on_mouse_up(button: int, x: double, y: double, scene: scene&)
-        + on_key_down(key: int, scene: scene&)
-        + draw_preview(canvas: i_canvas&)
+        - is_drawing: bool
+        - points: vector~point~
+        - current_mouse_pos: point
+        + on_mouse_down(button: int, p: point)
+        + on_mouse_move(p: point)
+        + on_mouse_up(button: int, p: point)
+        + on_key_down(key: int)
+        + reset()
+        + draw_preview()
         + get_name() string
+        + get_label() string
+        + get_icon() string
     }
 
     i_tool <|.. selection_tool
@@ -152,4 +191,3 @@ When true, forces width == height (square).
 
 constrain toggled by on_key_down/up(CTRL).
 When true, forces rx == ry (circle).
-

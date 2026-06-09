@@ -15,11 +15,11 @@ graph LR
     bounding_box · control_point
     line · triangle
     rectangle · ellipse
-    bezier_curve"]
+    bezier"]
 
     scene_pkg["📦 scene
     ─────────────
-    scene · pain_t
+    scene · app
     quad_tree
     scene_serializer"]
 
@@ -35,7 +35,7 @@ graph LR
     ─────────────
     i_command
     command_history
-    + 8 command classes"]
+    + 12 command classes"]
 
     figures     -->|"figure::draw uses"| engine
     scene_pkg   -->|"owns collection of"| figures
@@ -62,3 +62,24 @@ graph LR
 - `figures` depends only on `engine` (via `i_canvas`).
 - `commands` and `tools` depend on `figures` and `scene`, never on each other.
 - `scene` depends on `figures` and `commands` but **not** on `tools` — tools call into scene, not the other way around.
+
+## Building and Running
+
+### Prerequisites
+- CMake 3.15 or higher
+- C++20 compliant compiler (GCC 10+, Clang 10+, MSVC 2019+)
+- OpenGL development libraries (e.g. `libx11-dev`, `libxrandr-dev`, `libxinerama-dev`, `libxcursor-dev`, `libxi-dev` on Linux)
+
+### Building the Project
+```bash
+# Generate build configuration
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
+
+# Compile the application
+cmake --build build -j$(nproc)
+```
+
+### Running the Application
+```bash
+./build/pain_t/pain_t
+```

@@ -56,7 +56,6 @@ void engine_2d::init() {
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 330 core");
 
-  // Apply premium styling preset
   ImGui::StyleColorsDark();
   ImGuiStyle &style = ImGui::GetStyle();
 
@@ -78,7 +77,7 @@ void engine_2d::init() {
   colors[ImGuiCol_TitleBgActive] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
   colors[ImGuiCol_Button] = ImVec4(0.22f, 0.22f, 0.25f, 1.00f);
   colors[ImGuiCol_ButtonHovered] =
-      ImVec4(0.28f, 0.45f, 0.80f, 1.00f); // Sleek blue accent
+      ImVec4(0.28f, 0.45f, 0.80f, 1.00f);
   colors[ImGuiCol_ButtonActive] = ImVec4(0.18f, 0.35f, 0.70f, 1.00f);
   colors[ImGuiCol_Header] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
   colors[ImGuiCol_HeaderHovered] = ImVec4(0.28f, 0.45f, 0.80f, 1.00f);

@@ -46,7 +46,6 @@ void triangle_tool::on_mouse_move(point p) {
 }
 
 void triangle_tool::on_mouse_up(int button, point p) {
-  // We handle clicks in on_mouse_down for this multi-click tool
 }
 
 void triangle_tool::on_key_down(int key) {

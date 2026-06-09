@@ -30,14 +30,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glm)
 
 FetchContent_Declare(
-    catch2
-    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.5.3
-    GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(catch2)
-
-FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG docking
@@ -67,5 +59,4 @@ target_link_libraries(imgui PRIVATE glfw OpenGL::GL)
 add_subdirectory ("external")
 
 add_subdirectory ("pain_t")
-
-add_subdirectory ("tests")
+

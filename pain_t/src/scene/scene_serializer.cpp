@@ -21,7 +21,7 @@ bool scene_serializer::save(scene& s, const std::string& filepath) {
     out << "background " << bg.r << " " << bg.g << " " << bg.b << "\n";
     
     for (const auto* fig : s.get_figures()) {
-        out << "\n"; // Blank line between figures
+        out << "\n";
         out << "figure " << fig->get_type_tag() << "\n";
         out << "z_index " << fig->get_z_index() << "\n";
         out << "bordered " << (fig->is_bordered() ? 1 : 0) << "\n";
@@ -49,7 +49,6 @@ bool scene_serializer::load_into(const std::string& filepath, scene& s, engine_2
     if (!std::getline(in, line)) {
         return false;
     }
-    // Trim optional carriage return or whitespace
     while (!line.empty() && (line.back() == '\r' || line.back() == '\n' || line.back() == ' ')) {
         line.pop_back();
     }
@@ -67,16 +66,13 @@ bool scene_serializer::load_into(const std::string& filepath, scene& s, engine_2
         return false;
     }
 
-    // Fully clear the scene first
     s.clear();
     s.set_background_color(color(bg_r, bg_g, bg_b));
 
     while (std::getline(in, line)) {
-        // Trim whitespace/carriage returns
         while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) {
             line.pop_back();
         }
-        // Skip leading spaces or empty lines
         std::string trimmed = line;
         while (!trimmed.empty() && trimmed.front() == ' ') {
             trimmed.erase(trimmed.begin());
@@ -89,7 +85,6 @@ bool scene_serializer::load_into(const std::string& filepath, scene& s, engine_2
         std::string key;
         ss >> key;
         if (key != "figure") {
-            // Ignore invalid lines or headers outside a figure block
             continue;
         }
 
@@ -106,7 +101,6 @@ bool scene_serializer::load_into(const std::string& filepath, scene& s, engine_2
         bool has_filled = false;
         bool filled_val = true;
 
-        // Parse next lines for the figure
         std::string fig_line;
         while (points.size() < static_cast<size_t>(cp_count) || cp_count == 0) {
             if (!std::getline(in, fig_line)) {
@@ -149,12 +143,10 @@ bool scene_serializer::load_into(const std::string& filepath, scene& s, engine_2
                 fig_ss >> x >> y;
                 points.push_back(point(x, y));
             } else if (fig_key == "figure") {
-                // Encountered next figure prematurely, break
                 break;
             }
         }
 
-        // Construct figure
         figure* fig = nullptr;
         if (type_tag == "line" && points.size() >= 2) {
             fig = new ::line(points[0], points[1], border_color, engine);
