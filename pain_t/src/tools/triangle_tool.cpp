@@ -49,7 +49,15 @@ void triangle_tool::on_mouse_up(int button, point p) {
   // We handle clicks in on_mouse_down for this multi-click tool
 }
 
-void triangle_tool::on_key_down(int key) {}
+void triangle_tool::on_key_down(int key) {
+  if (key == GLFW_KEY_ESCAPE) {
+    state = 0;
+  }
+}
+
+void triangle_tool::reset() {
+  state = 0;
+}
 
 void triangle_tool::draw_preview() {
   if (state == 1) {

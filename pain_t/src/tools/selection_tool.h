@@ -1,6 +1,7 @@
 #pragma once
 #include "../figures/point.h"
 #include "i_tool.h"
+#include <vector>
 
 class engine_2d;
 class figure;
@@ -14,6 +15,7 @@ public:
   void on_mouse_move(point p) override;
   void on_mouse_up(int button, point p) override;
   void on_key_down(int key) override;
+  void reset() override;
   void draw_preview() override;
   void draw_settings() override;
   std::string get_name() override;
@@ -31,6 +33,7 @@ private:
   bool is_deforming = false;
   int active_control_point_idx = -1;
   point deform_start_pos;
+  std::vector<point> deform_start_points;
   float subdivision_t = 0.5f;
 
   bool try_select_control_point(figure *selected, point p);

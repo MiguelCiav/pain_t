@@ -738,7 +738,12 @@ TEST_CASE("new canvas commands execution and undo/redo", "[commands]") {
     point old_cp = rect1->get_control_points()[1].get_position();
     point new_cp(15.0, 25.0);
 
-    sc.execute(new deform_figure_command(rect1, &sc, 1, old_cp, new_cp));
+    std::vector<point> old_pts;
+    for (const auto &cp : rect1->get_control_points()) old_pts.push_back(cp.get_position());
+    std::vector<point> new_pts = old_pts;
+    new_pts[1] = new_cp;
+
+    sc.execute(new deform_figure_command(rect1, &sc, old_pts, new_pts));
     REQUIRE(rect1->get_control_points()[1].get_position().x == 15.0);
     REQUIRE(rect1->get_control_points()[1].get_position().y == 25.0);
 
@@ -953,7 +958,9 @@ TEST_CASE("shortcut movement and clipboard features", "[shortcuts]") {
     // Release Ctrl
     simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_RELEASE);
 
-    // Trigger Ctrl+V (paste) -> should clone the figure and offset it by 20, 20
+    // Move mouse before paste to dictate position (center of pasted figure will be at 150, 150)
+    glfwSetCursorPos(win, 150.0, 150.0);
+    // Trigger Ctrl+V (paste) -> should clone the figure and center it at mouse
     simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_PRESS);
     test_app.on_key_down(GLFW_KEY_V);
     simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_RELEASE);
@@ -962,8 +969,10 @@ TEST_CASE("shortcut movement and clipboard features", "[shortcuts]") {
     figure *pasted = sc.get_selected_figure();
     REQUIRE(pasted != rect);
     REQUIRE(pasted->get_type_tag() == "rectangle");
-    REQUIRE(pasted->get_control_points()[0].get_x() == 20.0);
-    REQUIRE(pasted->get_control_points()[0].get_y() == 20.0);
+    // Original rect was 0,0 to 100,100 (center 50,50). 
+    // Pasted center becomes 150,150 -> shift is 100,100 -> new points 100,100 to 200,200
+    REQUIRE(pasted->get_control_points()[0].get_x() == 100.0);
+    REQUIRE(pasted->get_control_points()[0].get_y() == 100.0);
 
     // Trigger Ctrl+X (cut) on the pasted figure -> should delete it from scene
     sc.select(pasted);
@@ -974,7 +983,9 @@ TEST_CASE("shortcut movement and clipboard features", "[shortcuts]") {
     REQUIRE(sc.get_figures().size() == 1);
     REQUIRE(sc.get_selected_figure() == nullptr);
 
-    // Paste again -> should paste the cut figure (offset by 20, 20 from its cut position, i.e. 40, 40)
+    // Paste again -> center of cut figure was at 150, 150. 
+    // Let's set mouse to 300, 300, which will shift it by +150, +150.
+    glfwSetCursorPos(win, 300.0, 300.0);
     simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_PRESS);
     test_app.on_key_down(GLFW_KEY_V);
     simulate_glfw_key(win, GLFW_KEY_LEFT_CONTROL, GLFW_RELEASE);
@@ -982,8 +993,9 @@ TEST_CASE("shortcut movement and clipboard features", "[shortcuts]") {
     REQUIRE(sc.get_figures().size() == 2);
     figure *pasted2 = sc.get_selected_figure();
     REQUIRE(pasted2 != rect);
-    REQUIRE(pasted2->get_control_points()[0].get_x() == 40.0);
-    REQUIRE(pasted2->get_control_points()[0].get_y() == 40.0);
+    // New points should be 100 + 150 = 250.
+    REQUIRE(pasted2->get_control_points()[0].get_x() == 250.0);
+    REQUIRE(pasted2->get_control_points()[0].get_y() == 250.0);
   }
 
   // Cleanup
@@ -1294,6 +1306,141 @@ TEST_CASE("large ellipse drawing safety", "[rasterizer][ellipse]") {
   // If we had integer overflow, it would overflow and loop infinitely or crash.
   // With int64_t calculations, it executes and completes safely.
   REQUIRE_NOTHROW(rasterizer::ellipse::draw(&test_app, point(50, 50), 3000, 3000, color(1, 0, 0)));
+}
+
+TEST_CASE("tools lifecycle and reset logic", "[tools][lifecycle]") {
+  app &test_app = get_test_app();
+  test_app.get_scene().clear();
+  
+  // 1. Tool switching resets state
+  i_tool *line = test_app.get_tools()[1];
+  i_tool *rect = test_app.get_tools()[2];
+  
+  test_app.set_active_tool(line);
+  line->on_mouse_down(0, point(10, 10));
+  line->on_mouse_move(point(20, 20));
+  
+  // Switch to rect
+  test_app.set_active_tool(rect);
+  
+  // Switch back to line and ensure is_drawing was reset
+  test_app.set_active_tool(line);
+  line->on_mouse_up(0, point(20, 20));
+  
+  // No figure should be created because is_drawing was reset to false
+  REQUIRE(test_app.get_scene().get_figures().empty());
+  
+  // 2. Clear scene resets active tool
+  test_app.set_active_tool(rect);
+  rect->on_mouse_down(0, point(5, 5));
+  rect->on_mouse_move(point(15, 15));
+  
+  // Trigger clear scene
+  test_app.get_scene().execute(new clear_scene_command(&test_app.get_scene()));
+  rect->reset(); // simulate UI reset
+  
+  rect->on_mouse_up(0, point(15, 15));
+  REQUIRE(test_app.get_scene().get_figures().empty());
+}
+
+TEST_CASE("tools escape key cancellation", "[tools][escape]") {
+  app &test_app = get_test_app();
+  test_app.get_scene().clear();
+  
+  SECTION("line_tool escape cancellation") {
+    line_tool tool(&test_app, &test_app);
+    tool.on_mouse_down(0, point(0, 0));
+    tool.on_mouse_move(point(10, 10));
+    
+    tool.on_key_down(GLFW_KEY_ESCAPE);
+    tool.on_mouse_up(0, point(10, 10));
+    
+    REQUIRE(test_app.get_scene().get_figures().empty());
+  }
+  
+  SECTION("rect_tool escape cancellation") {
+    rect_tool tool(&test_app, &test_app);
+    tool.on_mouse_down(0, point(0, 0));
+    tool.on_mouse_move(point(10, 10));
+    
+    tool.on_key_down(GLFW_KEY_ESCAPE);
+    tool.on_mouse_up(0, point(10, 10));
+    
+    REQUIRE(test_app.get_scene().get_figures().empty());
+  }
+  
+  SECTION("ellipse_tool escape cancellation") {
+    ellipse_tool tool(&test_app, &test_app);
+    tool.on_mouse_down(0, point(0, 0));
+    tool.on_mouse_move(point(10, 10));
+    
+    tool.on_key_down(GLFW_KEY_ESCAPE);
+    tool.on_mouse_up(0, point(10, 10));
+    
+    REQUIRE(test_app.get_scene().get_figures().empty());
+  }
+  
+  SECTION("triangle_tool escape cancellation") {
+    triangle_tool tool(&test_app, &test_app);
+    tool.on_mouse_down(0, point(0, 0)); // state 1
+    tool.on_mouse_down(0, point(10, 10)); // state 2
+    
+    tool.on_key_down(GLFW_KEY_ESCAPE); // resets to state 0
+    tool.on_mouse_down(0, point(20, 20)); // state 1
+    
+    // Cleanup/verify no triangle created
+    REQUIRE(test_app.get_scene().get_figures().empty());
+  }
+  
+  SECTION("selection_tool escape deselect") {
+    selection_tool tool(&test_app, &test_app);
+    figure *f = new line(point(0,0), point(10,10), color(1,1,1), &test_app);
+    test_app.get_scene().add_figure(f);
+    test_app.get_scene().select(f);
+    
+    REQUIRE(test_app.get_scene().get_selected_figure() == f);
+    
+    tool.on_key_down(GLFW_KEY_ESCAPE);
+    
+    REQUIRE(test_app.get_scene().get_selected_figure() == nullptr);
+  }
+}
+
+TEST_CASE("bezier tool enter vs escape key behavior", "[tools][bezier]") {
+  app &test_app = get_test_app();
+  test_app.get_scene().clear();
+  
+  SECTION("enter key commits bezier") {
+    bezier_tool tool(&test_app, &test_app);
+    tool.on_mouse_down(0, point(0, 0));
+    tool.on_mouse_up(0, point(0, 0));
+    tool.on_mouse_down(0, point(50, 50));
+    tool.on_mouse_up(0, point(50, 50));
+    tool.on_mouse_down(0, point(100, 0));
+    tool.on_mouse_up(0, point(100, 0));
+    
+    tool.on_key_down(GLFW_KEY_ENTER);
+    
+    REQUIRE(test_app.get_scene().get_figures().size() == 1);
+    figure *f = test_app.get_scene().get_figures()[0];
+    REQUIRE(f->get_type_tag() == "bezier");
+    
+    delete f;
+  }
+  
+  SECTION("escape key cancels bezier") {
+    bezier_tool tool(&test_app, &test_app);
+    tool.on_mouse_down(0, point(0, 0));
+    tool.on_mouse_up(0, point(0, 0));
+    tool.on_mouse_down(0, point(50, 50));
+    tool.on_mouse_up(0, point(50, 50));
+    tool.on_mouse_down(0, point(100, 0));
+    tool.on_mouse_up(0, point(100, 0));
+    
+    tool.on_key_down(GLFW_KEY_ESCAPE);
+    
+    REQUIRE(test_app.get_scene().get_figures().empty());
+  }
 }
 
 

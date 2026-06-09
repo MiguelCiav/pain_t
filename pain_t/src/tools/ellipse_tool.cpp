@@ -37,11 +37,11 @@ void ellipse_tool::on_mouse_up(int button, point p) {
 
   point adjusted_end = ending_point;
   if (application->is_ctrl_pressed()) {
-    int dx = ending_point.x - starting_point.x;
-    int dy = ending_point.y - starting_point.y;
-    int max_d = std::max(std::abs(dx), std::abs(dy));
-    adjusted_end = point(starting_point.x + (dx < 0 ? -max_d : max_d),
-                         starting_point.y + (dy < 0 ? -max_d : max_d));
+    double dx = ending_point.x - starting_point.x;
+    double dy = ending_point.y - starting_point.y;
+    double max_d = std::max(std::abs(dx), std::abs(dy));
+    adjusted_end = point(starting_point.x + (dx < 0.0 ? -max_d : max_d),
+                         starting_point.y + (dy < 0.0 ? -max_d : max_d));
   }
 
   figure *new_ellipse = new ellipse(
@@ -57,7 +57,15 @@ void ellipse_tool::on_mouse_up(int button, point p) {
   application->get_scene().execute(cmd);
 }
 
-void ellipse_tool::on_key_down(int key) {}
+void ellipse_tool::on_key_down(int key) {
+  if (key == GLFW_KEY_ESCAPE) {
+    is_drawing = false;
+  }
+}
+
+void ellipse_tool::reset() {
+  is_drawing = false;
+}
 
 void ellipse_tool::draw_preview() {
   if (!is_drawing) {
@@ -66,11 +74,11 @@ void ellipse_tool::draw_preview() {
 
   point adjusted_end = ending_point;
   if (application->is_ctrl_pressed()) {
-    int dx = ending_point.x - starting_point.x;
-    int dy = ending_point.y - starting_point.y;
-    int max_d = std::max(std::abs(dx), std::abs(dy));
-    adjusted_end = point(starting_point.x + (dx < 0 ? -max_d : max_d),
-                         starting_point.y + (dy < 0 ? -max_d : max_d));
+    double dx = ending_point.x - starting_point.x;
+    double dy = ending_point.y - starting_point.y;
+    double max_d = std::max(std::abs(dx), std::abs(dy));
+    adjusted_end = point(starting_point.x + (dx < 0.0 ? -max_d : max_d),
+                         starting_point.y + (dy < 0.0 ? -max_d : max_d));
   }
 
   rectangle bounding_box_rect(starting_point, adjusted_end,

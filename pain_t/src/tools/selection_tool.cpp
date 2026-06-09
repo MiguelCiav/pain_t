@@ -28,6 +28,10 @@ bool selection_tool::try_select_control_point(figure *selected, point p) {
       is_deforming = true;
       active_control_point_idx = static_cast<int>(i);
       deform_start_pos = cp_pos;
+      deform_start_points.clear();
+      for (const auto &cp : control_pts) {
+        deform_start_points.push_back(cp.get_position());
+      }
       last_mouse_point = p;
       return true;
     }
@@ -79,9 +83,38 @@ void selection_tool::deform_figure(figure *selected, point p) {
   control_point &cp = selected->get_control_points()[active_control_point_idx];
 
   point target_pos = point{cp.get_x() + shift.x, cp.get_y() + shift.y};
+
+  if (application->is_ctrl_pressed()) {
+    if (selected->get_type_tag() == "rectangle") {
+      int opp_idx = (active_control_point_idx + 2) % 4;
+      point opp_pos = deform_start_points[opp_idx];
+      double dx = target_pos.x - opp_pos.x;
+      double dy = target_pos.y - opp_pos.y;
+      double max_d = std::max(std::abs(dx), std::abs(dy));
+      target_pos = point(opp_pos.x + (dx < 0.0 ? -max_d : max_d),
+                         opp_pos.y + (dy < 0.0 ? -max_d : max_d));
+
+      int adj1 = (active_control_point_idx + 1) % 4;
+      int adj2 = (active_control_point_idx + 3) % 4;
+      selected->set_control_point(adj1, point(target_pos.x, opp_pos.y));
+      selected->set_control_point(adj2, point(opp_pos.x, target_pos.y));
+    } else if (selected->get_type_tag() == "ellipse") {
+      point center = deform_start_points[0];
+      double r = std::max(std::abs(target_pos.x - center.x), std::abs(target_pos.y - center.y));
+      if (active_control_point_idx == 1) { // top
+        target_pos.y = center.y + (target_pos.y < center.y ? -r : r);
+        target_pos.x = center.x;
+        selected->set_control_point(2, point(center.x + r, center.y));
+      } else if (active_control_point_idx == 2) { // right
+        target_pos.x = center.x + (target_pos.x < center.x ? -r : r);
+        target_pos.y = center.y;
+        selected->set_control_point(1, point(center.x, center.y - r));
+      }
+    }
+  }
+
   selected->set_control_point(active_control_point_idx, target_pos);
 
-  application->get_scene().notify_figure_moved(selected);
   last_mouse_point = p;
 }
 
@@ -90,7 +123,6 @@ void selection_tool::drag_figure(figure *selected, point p) {
     point shift = p - last_mouse_point;
     selected->move(shift);
     cumulative_shift = cumulative_shift + shift;
-    application->get_scene().notify_figure_moved(selected);
     last_mouse_point = p;
   }
 }
@@ -113,10 +145,25 @@ void selection_tool::on_mouse_up(int button, point p) {
         application->get_scene().execute(new move_figure_command(selected, &application->get_scene(), cumulative_shift));
       }
     } else if (is_deforming && selected && active_control_point_idx >= 0) {
-      point current_pos = selected->get_control_points()[active_control_point_idx].get_position();
-      if (!(current_pos == deform_start_pos)) {
-        selected->get_control_points()[active_control_point_idx].set_position(deform_start_pos);
-        application->get_scene().execute(new deform_figure_command(selected, &application->get_scene(), active_control_point_idx, deform_start_pos, current_pos));
+      std::vector<point> current_pts;
+      for (const auto &cp : selected->get_control_points()) {
+        current_pts.push_back(cp.get_position());
+      }
+      
+      bool changed = false;
+      for (size_t i = 0; i < current_pts.size(); ++i) {
+        if (current_pts[i] != deform_start_points[i]) {
+          changed = true;
+          break;
+        }
+      }
+      
+      if (changed) {
+        for (size_t i = 0; i < deform_start_points.size(); ++i) {
+          selected->set_control_point(i, deform_start_points[i]);
+        }
+        application->get_scene().execute(new deform_figure_command(
+            selected, &application->get_scene(), deform_start_points, current_pts));
       }
     }
     is_dragging = false;
@@ -125,7 +172,17 @@ void selection_tool::on_mouse_up(int button, point p) {
   }
 }
 
-void selection_tool::on_key_down(int key) {}
+void selection_tool::on_key_down(int key) {
+  if (key == GLFW_KEY_ESCAPE) {
+    application->get_scene().deselect();
+  }
+}
+
+void selection_tool::reset() {
+  is_dragging = false;
+  is_deforming = false;
+  active_control_point_idx = -1;
+}
 
 void selection_tool::draw_bounding_box(figure *selected) {
   bounding_box bb = selected->get_bounding_box();
@@ -283,9 +340,14 @@ void selection_tool::draw_settings() {
     }
 
     if (changed) {
-      point old_pos = control_pts[i].get_position();
-      point new_pos = point{x, y};
-      application->get_scene().execute(new deform_figure_command(selected, &application->get_scene(), static_cast<int>(i), old_pos, new_pos));
+      std::vector<point> old_pts;
+      for (const auto &cp : control_pts) {
+        old_pts.push_back(cp.get_position());
+      }
+      std::vector<point> new_pts = old_pts;
+      new_pts[i] = point{x, y};
+      application->get_scene().execute(new deform_figure_command(
+          selected, &application->get_scene(), old_pts, new_pts));
     }
 
     ImGui::PopID();

@@ -34,7 +34,10 @@ void bezier_tool::on_key_down(int key) {
   if (!is_drawing) {
     return;
   }
-  if (application->is_enter_pressed() || application->is_escape_pressed()) {
+  if (key == GLFW_KEY_ESCAPE) {
+    is_drawing = false;
+    points.clear();
+  } else if (key == GLFW_KEY_ENTER) {
     is_drawing = false;
     if (points.size() < 3) {
       points.clear();
@@ -47,6 +50,11 @@ void bezier_tool::on_key_down(int key) {
         new_bezier));
     points.clear();
   }
+}
+
+void bezier_tool::reset() {
+  is_drawing = false;
+  points.clear();
 }
 
 void bezier_tool::draw_preview() {

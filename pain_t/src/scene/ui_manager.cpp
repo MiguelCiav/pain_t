@@ -73,6 +73,9 @@ void ui_manager::draw_canvas_actions(app *application) {
     if (!sc.get_figures().empty()) {
       sc.execute(new clear_scene_command(&sc));
     }
+    if (application->get_active_tool()) {
+      application->get_active_tool()->reset();
+    }
   }
 
   if (ImGui::Button("Undo", ImVec2(-1.0f, 0.0f))) {

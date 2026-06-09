@@ -7,21 +7,24 @@ class deform_figure_command : public i_command {
 private:
   figure *_figure;
   scene *_scene;
-  int _cp_idx;
-  point _old_pos;
-  point _new_pos;
+  std::vector<point> _old_points;
+  std::vector<point> _new_points;
 
 public:
-  deform_figure_command(figure *f, scene *s, int cp_idx, point old_pos, point new_pos)
-      : _figure(f), _scene(s), _cp_idx(cp_idx), _old_pos(old_pos), _new_pos(new_pos) {}
+  deform_figure_command(figure *f, scene *s, const std::vector<point>& old_pts, const std::vector<point>& new_pts)
+      : _figure(f), _scene(s), _old_points(old_pts), _new_points(new_pts) {}
 
   void execute() override {
-    _figure->set_control_point(_cp_idx, _new_pos);
+    for (size_t i = 0; i < _new_points.size(); ++i) {
+      _figure->set_control_point(i, _new_points[i]);
+    }
     _scene->notify_figure_moved(_figure);
   }
 
   void undo() override {
-    _figure->set_control_point(_cp_idx, _old_pos);
+    for (size_t i = 0; i < _old_points.size(); ++i) {
+      _figure->set_control_point(i, _old_points[i]);
+    }
     _scene->notify_figure_moved(_figure);
   }
 };

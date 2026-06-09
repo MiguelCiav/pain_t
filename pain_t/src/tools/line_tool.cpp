@@ -43,7 +43,15 @@ void line_tool::on_mouse_up(int button, point p) {
   application->get_scene().execute(cmd);
 }
 
-void line_tool::on_key_down(int key) {}
+void line_tool::on_key_down(int key) {
+  if (key == GLFW_KEY_ESCAPE) {
+    is_drawing = false;
+  }
+}
+
+void line_tool::reset() {
+  is_drawing = false;
+}
 
 void line_tool::draw_preview() {
   if (!is_drawing) {

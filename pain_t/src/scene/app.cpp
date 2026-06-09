@@ -126,7 +126,10 @@ void app::register_shortcuts() {
   s_manager.register_shortcut(GLFW_KEY_V, true, [this]() {
     if (clipboard) {
       figure *pasted = clipboard->clone();
-      pasted->move(point(20.0, 20.0));
+      glm::vec2 mouse_pos = get_mouse_position();
+      point center = pasted->get_center();
+      point shift(mouse_pos.x - center.x, mouse_pos.y - center.y);
+      pasted->move(shift);
       delete clipboard;
       clipboard = pasted->clone();
 
@@ -204,4 +207,11 @@ void app::set_status(const std::string &msg, const color &col) {
   status_message = msg;
   status_color = col;
   status_timer = 5.0f;
+}
+
+void app::set_active_tool(i_tool *tool) {
+  if (active_tool) {
+    active_tool->reset();
+  }
+  active_tool = tool;
 }

@@ -46,7 +46,7 @@ public:
 
   scene &get_scene() { return main_scene; }
   i_tool *get_active_tool() const { return active_tool; }
-  void set_active_tool(i_tool *tool) { active_tool = tool; }
+  void set_active_tool(i_tool *tool);
   const std::vector<i_tool *> &get_tools() const { return tools; }
   
   bool is_showing_quad_tree() const { return show_quad_tree; }

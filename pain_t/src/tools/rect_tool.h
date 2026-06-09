@@ -18,6 +18,7 @@ public:
   void on_mouse_move(point p) override;
   void on_mouse_up(int button, point p) override;
   void on_key_down(int key) override;
+  void reset() override;
   void draw_preview() override;
   std::string get_name() override;
   std::string get_label() override { return "Rectangle Tool"; }
