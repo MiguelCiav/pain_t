@@ -85,8 +85,8 @@ bounding_box ellipse::get_bounding_box() {
     throw std::logic_error("Ellipse must have at least 3 control points to compute bounding box");
   }
   point center = control_points[0].get_position();
-  double a = std::abs(control_points[0].get_x() - control_points[2].get_x());
-  double b = std::abs(control_points[0].get_y() - control_points[1].get_y());
+  int a = std::abs(control_points[0].get_x() - control_points[2].get_x());
+  int b = std::abs(control_points[0].get_y() - control_points[1].get_y());
   
   std::vector<point> corners = {
       point(center.x - a, center.y - b),

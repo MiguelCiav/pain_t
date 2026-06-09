@@ -239,36 +239,38 @@ inline void draw(engine_2d *engine, point center, int a, int b, color c,
     return;
   }
 
-  int x = 0;
-  int y = b;
+  int64_t x = 0;
+  int64_t y = b;
+  int64_t a_long = a;
+  int64_t b_long = b;
 
-  int d = b * (4 * b - 4 * a * a) + a * a;
+  int64_t d = b_long * (4 * b_long - 4 * a_long * a_long) + a_long * a_long;
 
-  draw_ellipse_points(engine, center, x, y, c, fill);
+  draw_ellipse_points(engine, center, static_cast<int>(x), static_cast<int>(y), c, fill);
 
-  while (b * b * 2 * (x + 1) < a * a * (2 * y - 1)) {
+  while (b_long * b_long * 2 * (x + 1) < a_long * a_long * (2 * y - 1)) {
     if (d < 0) {
-      d += 4 * (b * b * (2 * x + 3));
+      d += 4 * (b_long * b_long * (2 * x + 3));
     } else {
-      d += 4 * (b * b * (2 * x + 3) + a * a * (-2 * y + 2));
+      d += 4 * (b_long * b_long * (2 * x + 3) + a_long * a_long * (-2 * y + 2));
       y--;
     }
     x++;
-    draw_ellipse_points(engine, center, x, y, c, fill);
+    draw_ellipse_points(engine, center, static_cast<int>(x), static_cast<int>(y), c, fill);
   }
 
-  d = b * b * (2 * x + 1) * (2 * x + 1) + 4 * a * a * (y - 1) * (y - 1) -
-      4 * a * a * b * b;
+  d = b_long * b_long * (2 * x + 1) * (2 * x + 1) + 4 * a_long * a_long * (y - 1) * (y - 1) -
+      4 * a_long * a_long * b_long * b_long;
 
   while (y > 0) {
     if (d < 0) {
-      d += 4 * (b * b * (2 * x + 2) + a * a * (-2 * y + 3));
+      d += 4 * (b_long * b_long * (2 * x + 2) + a_long * a_long * (-2 * y + 3));
       x++;
     } else {
-      d += 4 * a * a * (-2 * y + 3);
+      d += 4 * a_long * a_long * (-2 * y + 3);
     }
     y--;
-    draw_ellipse_points(engine, center, x, y, c, fill);
+    draw_ellipse_points(engine, center, static_cast<int>(x), static_cast<int>(y), c, fill);
   }
 }
 } // namespace ellipse

@@ -7,6 +7,7 @@
 #include "../pain_t/src/figures/point.h"
 #include "../pain_t/src/figures/rectangle.h"
 #include "../pain_t/src/figures/triangle.h"
+#include "../pain_t/src/figures/rasterizer.h"
 #include "../pain_t/src/scene/app.h"
 #include "../pain_t/src/scene/scene.h"
 #include "../pain_t/src/commands/increase_degree_command.h"
@@ -1167,9 +1168,8 @@ TEST_CASE("command memory ownership and lifecycle", "[commands][memory]") {
     delete cmd;
     REQUIRE(mock_figure::destructor_calls == 0);
     
-    // Clean up scene (deletes fig)
-    sc.get_figures().clear();
-    delete fig;
+    // Clean up scene
+    sc.clear();
   }
 
   SECTION("create_figure_command undone and deleted deletes figure (prevents leak)") {
@@ -1212,8 +1212,7 @@ TEST_CASE("command memory ownership and lifecycle", "[commands][memory]") {
     REQUIRE(mock_figure::destructor_calls == 0);
     
     // Clean up scene
-    sc.get_figures().clear();
-    delete fig;
+    sc.clear();
   }
 
   SECTION("subdivide_bezier_command executed and deleted deletes original but not splits") {
@@ -1232,9 +1231,7 @@ TEST_CASE("command memory ownership and lifecycle", "[commands][memory]") {
     REQUIRE(mock_bezier::destructor_calls == 1); // only orig deleted
 
     // Cleanup scene
-    sc.get_figures().clear();
-    delete left;
-    delete right;
+    sc.clear();
   }
 
   SECTION("subdivide_bezier_command undone and deleted deletes splits but not original") {
@@ -1254,9 +1251,17 @@ TEST_CASE("command memory ownership and lifecycle", "[commands][memory]") {
     REQUIRE(mock_bezier::destructor_calls == 2); // left and right deleted
 
     // Cleanup scene
-    sc.get_figures().clear();
-    delete orig;
+    sc.clear();
   }
+}
+
+TEST_CASE("large ellipse drawing safety", "[rasterizer][ellipse]") {
+  app &test_app = get_test_app();
+  
+  // Draw a very large ellipse (radius 3000)
+  // If we had integer overflow, it would overflow and loop infinitely or crash.
+  // With int64_t calculations, it executes and completes safely.
+  REQUIRE_NOTHROW(rasterizer::ellipse::draw(&test_app, point(50, 50), 3000, 3000, color(1, 0, 0)));
 }
 
 

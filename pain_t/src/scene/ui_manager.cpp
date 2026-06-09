@@ -173,39 +173,39 @@ void ui_manager::draw_color_settings(app *application) {
     }
   }
 
-  ImGui::Text("Fill Color");
-  color fill = sc.get_active_fill_color();
-
-  static color fill_start_color;
-  static bool fill_color_active = false;
-
-  if (ImGui::ColorEdit3("##Fill Color", &fill.r)) {
-    if (!fill_color_active) {
-      if (sc.get_selected_figure()) {
-        fill_start_color = sc.get_selected_figure()->get_fill_color();
-      } else {
-        fill_start_color = sc.get_active_fill_color();
-      }
-      fill_color_active = true;
-    }
-    sc.set_active_fill_color(fill);
-    if (sc.get_selected_figure())
-      sc.get_selected_figure()->set_fill_color(fill);
-  }
-
-  if (ImGui::IsItemDeactivatedAfterEdit()) {
-    fill_color_active = false;
-    if (sc.get_selected_figure()) {
-      figure *selected = sc.get_selected_figure();
-      selected->set_fill_color(fill_start_color);
-      sc.execute(new change_color_command(selected, color_type::fill,
-                                          fill_start_color, fill));
-    }
-  }
-
   bool can_fill =
       sc.get_selected_figure() ? sc.get_selected_figure()->can_fill() : true;
   if (can_fill) {
+    ImGui::Text("Fill Color");
+    color fill = sc.get_active_fill_color();
+
+    static color fill_start_color;
+    static bool fill_color_active = false;
+
+    if (ImGui::ColorEdit3("##Fill Color", &fill.r)) {
+      if (!fill_color_active) {
+        if (sc.get_selected_figure()) {
+          fill_start_color = sc.get_selected_figure()->get_fill_color();
+        } else {
+          fill_start_color = sc.get_active_fill_color();
+        }
+        fill_color_active = true;
+      }
+      sc.set_active_fill_color(fill);
+      if (sc.get_selected_figure())
+        sc.get_selected_figure()->set_fill_color(fill);
+    }
+
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+      fill_color_active = false;
+      if (sc.get_selected_figure()) {
+        figure *selected = sc.get_selected_figure();
+        selected->set_fill_color(fill_start_color);
+        sc.execute(new change_color_command(selected, color_type::fill,
+                                            fill_start_color, fill));
+      }
+    }
+
     bool filled = sc.get_selected_figure()
                       ? sc.get_selected_figure()->is_filled()
                       : sc.is_active_filled();

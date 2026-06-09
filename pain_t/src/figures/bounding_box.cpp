@@ -10,7 +10,7 @@ void bounding_box::set_points(std::vector<point> points) {
   double min_x, min_y;
   double max_x, max_y;
   min_x = min_y = std::numeric_limits<double>::max();
-  max_x = max_y = std::numeric_limits<double>::min();
+  max_x = max_y = std::numeric_limits<double>::lowest();
   for (auto p : points) {
     min_x = (min_x > p.x ? p.x : min_x);
     min_y = (min_y > p.y ? p.y : min_y);

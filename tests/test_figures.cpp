@@ -521,4 +521,29 @@ TEST_CASE("bezier primitive coverage", "[figures][bezier]") {
     }
 }
 
+TEST_CASE("bounding box negative coordinates", "[bounding_box]") {
+    std::vector<point> pts = {point(-100.0, -100.0), point(-50.0, -50.0)};
+    bounding_box bb(pts);
+    std::vector<point> box = bb.get_bounding_box();
+    REQUIRE(box[0].x == -100.0);
+    REQUIRE(box[0].y == -100.0);
+    REQUIRE(box[2].x == -50.0);
+    REQUIRE(box[2].y == -50.0);
+}
+
+TEST_CASE("non-fillable shape fill color guard", "[figures][fill]") {
+    line l(point(0, 0), point(10, 10), color(0, 0, 0), nullptr);
+    REQUIRE_FALSE(l.can_fill());
+    REQUIRE_FALSE(l.is_filled());
+
+    // Try setting fill color
+    l.set_fill_color(color(1, 1, 1));
+    // Verify it was ignored and filled remains false
+    REQUIRE_FALSE(l.is_filled());
+
+    // Try setting filled to true
+    l.set_filled(true);
+    REQUIRE_FALSE(l.is_filled());
+}
+
 

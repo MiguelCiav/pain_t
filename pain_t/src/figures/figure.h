@@ -58,11 +58,17 @@ public:
     this->border_color = border_color;
   }
   virtual void set_fill_color(color fill_color) {
-    filled = true;
-    this->fill_color = fill_color;
+    if (can_fill()) {
+      filled = true;
+      this->fill_color = fill_color;
+    }
   }
   virtual void set_bordered(bool bordered) { this->bordered = bordered; }
-  virtual void set_filled(bool filled) { this->filled = filled; }
+  virtual void set_filled(bool filled) {
+    if (can_fill()) {
+      this->filled = filled;
+    }
+  }
   virtual void select() { this->selected = true; }
   virtual void unselect() { this->selected = false; }
 
