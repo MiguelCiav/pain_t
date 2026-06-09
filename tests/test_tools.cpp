@@ -19,6 +19,8 @@
 #include "../pain_t/src/commands/toggle_fill_command.h"
 #include "../pain_t/src/commands/scale_figure_command.h"
 #include "../pain_t/src/commands/subdivide_bezier_command.h"
+#include "../pain_t/src/commands/create_figure_command.h"
+#include "../pain_t/src/commands/delete_figure_command.h"
 #include "../pain_t/src/figures/bezier.h"
 #include "../pain_t/src/tools/bezier_tool.h"
 #include "../pain_t/src/tools/ellipse_tool.h"
@@ -1123,6 +1125,138 @@ TEST_CASE("bezier evaluation, subdivision and subdivision command", "[bezier][co
   // Cleanup
   sc.deselect();
   sc.get_figures().clear();
+}
+
+class mock_figure : public figure {
+public:
+  static int destructor_calls;
+  mock_figure() : figure() {}
+  ~mock_figure() override { destructor_calls++; }
+  
+  bool on_border(point click) const override { return false; }
+  bool on_filling(point click) const override { return false; }
+  void draw_border() override {}
+  void draw_fill() override {}
+  std::string get_type_tag() const override { return "mock"; }
+  figure *clone() const override { return new mock_figure(); }
+};
+int mock_figure::destructor_calls = 0;
+
+class mock_bezier : public bezier {
+public:
+  static int destructor_calls;
+  mock_bezier(std::vector<point> pts) : bezier(pts, color(), nullptr) {}
+  ~mock_bezier() override { destructor_calls++; }
+};
+int mock_bezier::destructor_calls = 0;
+
+TEST_CASE("command memory ownership and lifecycle", "[commands][memory]") {
+  app &test_app = get_test_app();
+  scene &sc = test_app.get_scene();
+  sc.get_figures().clear();
+  sc.deselect();
+
+  SECTION("create_figure_command executed and deleted does not delete figure") {
+    mock_figure::destructor_calls = 0;
+    mock_figure *fig = new mock_figure();
+    
+    auto *cmd = new create_figure_command(&sc, fig);
+    cmd->execute();
+    
+    // Command is destroyed, but figure is in scene, so it should not be deleted
+    delete cmd;
+    REQUIRE(mock_figure::destructor_calls == 0);
+    
+    // Clean up scene (deletes fig)
+    sc.get_figures().clear();
+    delete fig;
+  }
+
+  SECTION("create_figure_command undone and deleted deletes figure (prevents leak)") {
+    mock_figure::destructor_calls = 0;
+    mock_figure *fig = new mock_figure();
+    
+    auto *cmd = new create_figure_command(&sc, fig);
+    cmd->execute();
+    cmd->undo();
+    
+    // Command is destroyed, since it was undone it owns the figure and should delete it
+    delete cmd;
+    REQUIRE(mock_figure::destructor_calls == 1);
+  }
+
+  SECTION("delete_figure_command executed and deleted deletes figure (prevents leak)") {
+    mock_figure::destructor_calls = 0;
+    mock_figure *fig = new mock_figure();
+    sc.add_figure(fig);
+    
+    auto *cmd = new delete_figure_command(&sc, fig);
+    cmd->execute();
+    
+    // Command is destroyed, since it deleted the figure it owns it and should delete it
+    delete cmd;
+    REQUIRE(mock_figure::destructor_calls == 1);
+  }
+
+  SECTION("delete_figure_command undone and deleted does not delete figure") {
+    mock_figure::destructor_calls = 0;
+    mock_figure *fig = new mock_figure();
+    sc.add_figure(fig);
+    
+    auto *cmd = new delete_figure_command(&sc, fig);
+    cmd->execute();
+    cmd->undo();
+    
+    // Command is destroyed, since it was undone the scene owns the figure
+    delete cmd;
+    REQUIRE(mock_figure::destructor_calls == 0);
+    
+    // Clean up scene
+    sc.get_figures().clear();
+    delete fig;
+  }
+
+  SECTION("subdivide_bezier_command executed and deleted deletes original but not splits") {
+    mock_bezier::destructor_calls = 0;
+    std::vector<point> pts = {point(0,0), point(50,50), point(100,0)};
+    mock_bezier *orig = new mock_bezier(pts);
+    mock_bezier *left = new mock_bezier(pts);
+    mock_bezier *right = new mock_bezier(pts);
+    sc.add_figure(orig);
+
+    auto *cmd = new subdivide_bezier_command(&sc, orig, left, right);
+    cmd->execute();
+
+    // Command deleted: should delete original but not left/right (which are in scene)
+    delete cmd;
+    REQUIRE(mock_bezier::destructor_calls == 1); // only orig deleted
+
+    // Cleanup scene
+    sc.get_figures().clear();
+    delete left;
+    delete right;
+  }
+
+  SECTION("subdivide_bezier_command undone and deleted deletes splits but not original") {
+    mock_bezier::destructor_calls = 0;
+    std::vector<point> pts = {point(0,0), point(50,50), point(100,0)};
+    mock_bezier *orig = new mock_bezier(pts);
+    mock_bezier *left = new mock_bezier(pts);
+    mock_bezier *right = new mock_bezier(pts);
+    sc.add_figure(orig);
+
+    auto *cmd = new subdivide_bezier_command(&sc, orig, left, right);
+    cmd->execute();
+    cmd->undo();
+
+    // Command deleted: should delete left/right (splits) but not original (which is back in scene)
+    delete cmd;
+    REQUIRE(mock_bezier::destructor_calls == 2); // left and right deleted
+
+    // Cleanup scene
+    sc.get_figures().clear();
+    delete orig;
+  }
 }
 
 

@@ -78,18 +78,8 @@ void selection_tool::deform_figure(figure *selected, point p) {
   point shift = p - last_mouse_point;
   control_point &cp = selected->get_control_points()[active_control_point_idx];
 
-  if (selected->get_type_tag() == "ellipse") {
-    point center = selected->get_control_points()[0].get_position();
-    if (active_control_point_idx == 1) {
-      double new_y = cp.get_y() + shift.y;
-      cp.set_position(center.x, new_y);
-    } else if (active_control_point_idx == 2) {
-      double new_x = cp.get_x() + shift.x;
-      cp.set_position(new_x, center.y);
-    }
-  } else {
-    cp.set_position(cp.get_x() + shift.x, cp.get_y() + shift.y);
-  }
+  point target_pos = point{cp.get_x() + shift.x, cp.get_y() + shift.y};
+  selected->set_control_point(active_control_point_idx, target_pos);
 
   application->get_scene().notify_figure_moved(selected);
   last_mouse_point = p;

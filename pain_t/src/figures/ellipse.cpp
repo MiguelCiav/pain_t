@@ -109,3 +109,17 @@ figure *ellipse::clone() const {
   cloned->set_z_index(z_index);
   return cloned;
 }
+
+void ellipse::set_control_point(size_t index, point p) {
+  if (index >= control_points.size()) {
+    throw std::out_of_range("Control point index out of range");
+  }
+  point center = control_points[0].get_position();
+  if (index == 1) {
+    control_points[index].set_position(center.x, p.y);
+  } else if (index == 2) {
+    control_points[index].set_position(p.x, center.y);
+  } else {
+    control_points[index].set_position(p);
+  }
+}

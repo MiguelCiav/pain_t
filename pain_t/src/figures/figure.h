@@ -48,6 +48,7 @@ public:
   virtual const std::vector<control_point> &get_control_points() const {
     return control_points;
   }
+  virtual void set_control_point(size_t index, point p);
 
   // SETTERS
   virtual void set_engine(engine_2d *engine) { this->engine = engine; }

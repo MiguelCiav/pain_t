@@ -81,3 +81,10 @@ void figure::scale(double factor) {
     cp.set_y(center.y + dy * factor);
   }
 }
+
+void figure::set_control_point(size_t index, point p) {
+  if (index >= control_points.size()) {
+    throw std::out_of_range("Control point index out of range");
+  }
+  control_points[index].set_position(p);
+}

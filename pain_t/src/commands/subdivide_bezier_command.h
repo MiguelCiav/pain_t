@@ -11,24 +11,19 @@ private:
   bezier *_left;
   bezier *_right;
 
+  bool _is_executed = false;
+
 public:
   subdivide_bezier_command(scene *s, bezier *orig, bezier *left, bezier *right)
-      : _scene(s), _original(orig), _left(left), _right(right) {}
+      : _scene(s), _original(orig), _left(left), _right(right), _is_executed(false) {}
 
   ~subdivide_bezier_command() {
-    bool left_in_scene = false;
-    bool right_in_scene = false;
-    bool original_in_scene = false;
-
-    for (figure *f : _scene->get_figures()) {
-      if (f == _left) left_in_scene = true;
-      if (f == _right) right_in_scene = true;
-      if (f == _original) original_in_scene = true;
+    if (_is_executed) {
+      delete _original;
+    } else {
+      delete _left;
+      delete _right;
     }
-
-    if (!left_in_scene) delete _left;
-    if (!right_in_scene) delete _right;
-    if (!original_in_scene) delete _original;
   }
 
   void execute() override {
@@ -36,6 +31,7 @@ public:
     _scene->add_figure(_left);
     _scene->add_figure(_right);
     _scene->deselect();
+    _is_executed = true;
   }
 
   void undo() override {
@@ -43,5 +39,6 @@ public:
     _scene->remove_figure(_right);
     _scene->add_figure(_original);
     _scene->select(_original);
+    _is_executed = false;
   }
 };

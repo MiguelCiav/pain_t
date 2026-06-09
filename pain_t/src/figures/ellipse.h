@@ -29,4 +29,5 @@ public:
   point get_center() const override;
   std::string get_type_tag() const override;
   figure *clone() const override;
+  void set_control_point(size_t index, point p) override;
 };
