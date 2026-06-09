@@ -31,6 +31,7 @@
 #include "../pain_t/src/tools/triangle_tool.h"
 #include <catch2/catch_test_macros.hpp>
 #include <vector>
+#include <fstream>
 
 inline app &get_test_app() {
   static app test_app;
@@ -600,7 +601,8 @@ TEST_CASE("scene save and load serialization", "[serialization]") {
 
   // Add some figures to the scene
   figure *line1 = new ::line(point(10, 20), point(30, 40), color(1, 0, 0), &test_app);
-  figure *rect1 = new rectangle(point(50, 60), point(150, 160), color(0, 1, 0), color(0, 0, 1), true, &test_app);
+  figure *rect1 = new rectangle(point(50, 60), point(150, 160), color(0, 1, 0), color(0, 0, 1), false, &test_app);
+  rect1->set_bordered(false);
   sc.add_figure(line1);
   sc.add_figure(rect1);
 
@@ -642,8 +644,38 @@ TEST_CASE("scene save and load serialization", "[serialization]") {
     REQUIRE(fig1->get_type_tag() == "rectangle");
     REQUIRE(fig1->get_border_color() == color(0, 1, 0));
     REQUIRE(fig1->get_fill_color() == color(0, 0, 1));
-    REQUIRE(fig1->is_filled() == true);
+    REQUIRE(fig1->is_filled() == false);
+    REQUIRE(fig1->is_bordered() == false);
     REQUIRE(fig1->get_control_points().size() == 4);
+  }
+
+  SECTION("backward compatibility loading") {
+    // Write an older format without bordered/filled keys
+    std::string compat_file = "test_compat.p_t";
+    std::ofstream out(compat_file);
+    out << "pain_t v1\n";
+    out << "background 0.5 0.5 0.5\n";
+    out << "\n";
+    out << "figure rectangle\n";
+    out << "z_index 3\n";
+    out << "border_color 1 0 0\n";
+    out << "fill_color 0 1 0\n";
+    out << "control_points 4\n";
+    out << "cp 0 0\n";
+    out << "cp 10 0\n";
+    out << "cp 10 10\n";
+    out << "cp 0 10\n";
+    out.close();
+
+    sc.clear();
+    REQUIRE(scene_serializer::load_into(compat_file, sc, &test_app) == true);
+    REQUIRE(sc.get_figures().size() == 1);
+    figure *fig = sc.get_figures()[0];
+    REQUIRE(fig->get_type_tag() == "rectangle");
+    REQUIRE(fig->get_z_index() == 3);
+    // Should default to bordered and filled being true
+    REQUIRE(fig->is_bordered() == true);
+    REQUIRE(fig->is_filled() == true);
   }
 }
 

@@ -3,6 +3,8 @@ background 0.12 0.34 0.56
 
 figure line
 z_index 0
+bordered 1
+filled 0
 border_color 1 0 0
 fill_color 0 0 0
 control_points 2
@@ -11,6 +13,8 @@ cp 30 40
 
 figure rectangle
 z_index 0
+bordered 0
+filled 0
 border_color 0 1 0
 fill_color 0 0 1
 control_points 4

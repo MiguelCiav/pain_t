@@ -24,6 +24,8 @@ bool scene_serializer::save(scene& s, const std::string& filepath) {
         out << "\n"; // Blank line between figures
         out << "figure " << fig->get_type_tag() << "\n";
         out << "z_index " << fig->get_z_index() << "\n";
+        out << "bordered " << (fig->is_bordered() ? 1 : 0) << "\n";
+        out << "filled " << (fig->is_filled() ? 1 : 0) << "\n";
         color border = fig->get_border_color();
         out << "border_color " << border.r << " " << border.g << " " << border.b << "\n";
         color fill = fig->get_fill_color();
@@ -99,6 +101,10 @@ bool scene_serializer::load_into(const std::string& filepath, scene& s, engine_2
         color fill_color;
         int cp_count = 0;
         std::vector<point> points;
+        bool has_bordered = false;
+        bool bordered_val = true;
+        bool has_filled = false;
+        bool filled_val = true;
 
         // Parse next lines for the figure
         std::string fig_line;
@@ -122,6 +128,16 @@ bool scene_serializer::load_into(const std::string& filepath, scene& s, engine_2
             fig_ss >> fig_key;
             if (fig_key == "z_index") {
                 fig_ss >> z_index;
+            } else if (fig_key == "bordered") {
+                int val = 1;
+                fig_ss >> val;
+                bordered_val = (val != 0);
+                has_bordered = true;
+            } else if (fig_key == "filled") {
+                int val = 1;
+                fig_ss >> val;
+                filled_val = (val != 0);
+                has_filled = true;
             } else if (fig_key == "border_color") {
                 fig_ss >> border_color.r >> border_color.g >> border_color.b;
             } else if (fig_key == "fill_color") {
@@ -155,8 +171,14 @@ bool scene_serializer::load_into(const std::string& filepath, scene& s, engine_2
         if (fig) {
             fig->set_z_index(z_index);
             fig->set_border_color(border_color);
+            if (has_bordered) {
+                fig->set_bordered(bordered_val);
+            }
             if (fig->can_fill()) {
                 fig->set_fill_color(fill_color);
+                if (has_filled) {
+                    fig->set_filled(filled_val);
+                }
             }
             s.add_figure(fig);
         }
