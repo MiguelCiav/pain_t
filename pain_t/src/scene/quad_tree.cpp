@@ -93,9 +93,14 @@ void quad_tree::remove(figure *fig) {
 
 std::unordered_set<figure *>
 quad_tree::query(bounding_box bounds,
-                 std::unordered_set<figure *> *result) const {
+                 std::unordered_set<figure *> *result,
+                 std::vector<bounding_box> *visited_nodes) const {
   std::unordered_set<figure *> local_result;
   std::unordered_set<figure *> &active_result = result ? *result : local_result;
+
+  if (visited_nodes) {
+    visited_nodes->push_back(this->bounds);
+  }
 
   if (this->is_leaf()) {
     for (auto element : elements) {
@@ -107,7 +112,7 @@ quad_tree::query(bounding_box bounds,
   } else {
     for (int i = 0; i < CHILDREN_LIMIT; i++) {
       if (children[i] != nullptr && children[i]->intersects(bounds)) {
-        children[i]->query(bounds, &active_result);
+        children[i]->query(bounds, &active_result, visited_nodes);
       }
     }
   }

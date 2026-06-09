@@ -21,6 +21,11 @@ private:
   bool active_filled = true;
   quad_tree *tree = nullptr;
 
+  // Animation state for QuadTree selection
+  mutable std::vector<bounding_box> query_anim_nodes;
+  mutable int query_anim_index = -1;
+  mutable float query_anim_timer = 0.0f;
+
 public:
   scene() = default;
   ~scene();
@@ -42,6 +47,7 @@ public:
   // Drawing
   void draw_all(engine_2d *engine) const;
   void draw_quad_tree(engine_2d *engine) const;
+  void update_animation(float deltaTime) const;
 
   // Document Color State
   color get_background_color() const { return background_color; }

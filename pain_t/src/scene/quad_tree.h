@@ -35,6 +35,7 @@ public:
   bool intersects(bounding_box box) const;
   std::unordered_set<figure *>
   query(bounding_box bounds,
-        std::unordered_set<figure *> *result = nullptr) const;
+        std::unordered_set<figure *> *result = nullptr,
+        std::vector<bounding_box> *visited_nodes = nullptr) const;
   void draw(engine_2d *engine) const;
 };

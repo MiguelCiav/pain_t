@@ -4,6 +4,7 @@
 #include "figure.h"
 #include "point.h"
 #include <string>
+#include <utility>
 
 class engine_2d;
 const int BEZIER_BOX_TOLERANCE = 5;
@@ -28,4 +29,6 @@ public:
 
   // SPECIAL
   void increase_degree();
+  point evaluate(double t) const;
+  std::pair<std::vector<point>, std::vector<point>> subdivide(double t) const;
 };

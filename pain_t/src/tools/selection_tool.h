@@ -31,6 +31,7 @@ private:
   bool is_deforming = false;
   int active_control_point_idx = -1;
   point deform_start_pos;
+  float subdivision_t = 0.5f;
 
   bool try_select_control_point(figure *selected, point p);
   bool try_select_center(figure *selected, point p);

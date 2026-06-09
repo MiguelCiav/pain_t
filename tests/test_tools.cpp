@@ -18,6 +18,7 @@
 #include "../pain_t/src/commands/toggle_border_command.h"
 #include "../pain_t/src/commands/toggle_fill_command.h"
 #include "../pain_t/src/commands/scale_figure_command.h"
+#include "../pain_t/src/commands/subdivide_bezier_command.h"
 #include "../pain_t/src/figures/bezier.h"
 #include "../pain_t/src/tools/bezier_tool.h"
 #include "../pain_t/src/tools/ellipse_tool.h"
@@ -1000,6 +1001,123 @@ TEST_CASE("figure scaling and scale_figure_command", "[figure][commands][scale]"
     // Redo scaling
     sc.redo();
     REQUIRE(rect->get_control_points()[0].get_x() == -25.0);
+  }
+
+  // Cleanup
+  sc.deselect();
+  sc.get_figures().clear();
+}
+
+TEST_CASE("quadtree selection animation verification", "[scene][quadtree][animation]") {
+  app &test_app = get_test_app();
+  scene &sc = test_app.get_scene();
+
+  rectangle *rect = new rectangle(point(0, 0), point(100, 100), color(0, 0, 0), color(0, 0, 0), false, &test_app);
+  sc.add_figure(rect);
+
+  // Trigger selection query
+  sc.query(point(50.0, 50.0));
+
+  // Verify animation nodes are captured
+  // (We should have at least 1 node visited, which is the root)
+  // Let's check how many nodes are in query_anim_nodes. If the tree is initialized, it should have at least the root node.
+  // Actually, let's verify if the animation updates correctly.
+  // We can't access private members, but we can verify that compilation and basic updates don't crash.
+  sc.update_animation(0.1f);
+  sc.update_animation(0.2f);
+
+  // Cleanup
+  sc.deselect();
+  sc.get_figures().clear();
+}
+
+TEST_CASE("bezier evaluation, subdivision and subdivision command", "[bezier][commands][subdivision]") {
+  app &test_app = get_test_app();
+  scene &sc = test_app.get_scene();
+
+  // Create a Bezier curve with 3 control points (quadratic Bezier)
+  // P0 = (0, 0), P1 = (50, 100), P2 = (100, 0)
+  std::vector<point> pts = {point(0, 0), point(50, 100), point(100, 0)};
+  bezier *b = new bezier(pts, color(0, 0, 0), &test_app);
+  sc.add_figure(b);
+
+  SECTION("bezier evaluate") {
+    // At t = 0, should be P0
+    point p0 = b->evaluate(0.0);
+    REQUIRE(p0.x == 0.0);
+    REQUIRE(p0.y == 0.0);
+
+    // At t = 1, should be P2
+    point p2 = b->evaluate(1.0);
+    REQUIRE(p2.x == 100.0);
+    REQUIRE(p2.y == 0.0);
+
+    // At t = 0.5, quadratic Bezier formula: B(0.5) = 0.25*P0 + 0.5*P1 + 0.25*P2
+    // B_x(0.5) = 0.25*0 + 0.5*50 + 0.25*100 = 50
+    // B_y(0.5) = 0.25*0 + 0.5*100 + 0.25*0 = 50
+    point p_mid = b->evaluate(0.5);
+    REQUIRE(p_mid.x == 50.0);
+    REQUIRE(p_mid.y == 50.0);
+  }
+
+  SECTION("bezier subdivide math") {
+    auto split = b->subdivide(0.5);
+    std::vector<point> left = split.first;
+    std::vector<point> right = split.second;
+
+    REQUIRE(left.size() == 3);
+    REQUIRE(right.size() == 3);
+
+    // Left curve P0 should be original P0
+    REQUIRE(left[0].x == 0.0);
+    REQUIRE(left[0].y == 0.0);
+
+    // Left curve P2 should be B(0.5)
+    REQUIRE(left[2].x == 50.0);
+    REQUIRE(left[2].y == 50.0);
+
+    // Right curve P0 should be B(0.5)
+    REQUIRE(right[0].x == 50.0);
+    REQUIRE(right[0].y == 50.0);
+
+    // Right curve P2 should be original P2
+    REQUIRE(right[2].x == 100.0);
+    REQUIRE(right[2].y == 0.0);
+  }
+
+  SECTION("subdivide bezier command execution and undo/redo") {
+    sc.select(b);
+    REQUIRE(sc.get_figures().size() == 1);
+
+    auto split = b->subdivide(0.5);
+    bezier *left = new bezier(split.first, b->get_border_color(), &test_app);
+    bezier *right = new bezier(split.second, b->get_border_color(), &test_app);
+
+    // Execute subdivide command
+    sc.execute(new subdivide_bezier_command(&sc, b, left, right));
+
+    REQUIRE(sc.get_figures().size() == 2);
+    REQUIRE(sc.get_selected_figure() == nullptr); // Selection cleared on subdivide
+
+    // Undo subdivision
+    sc.undo();
+    REQUIRE(sc.get_figures().size() == 1);
+    REQUIRE(sc.get_selected_figure() == b); // Re-selected original
+
+    // Redo subdivision
+    sc.redo();
+    REQUIRE(sc.get_figures().size() == 2);
+    REQUIRE(sc.get_selected_figure() == nullptr);
+  }
+
+  SECTION("bezier validation on small control point sets") {
+    // Create an invalid bezier with 2 control points
+    std::vector<point> small_pts = {point(0, 0), point(50, 100)};
+    bezier *invalid_b = new bezier(small_pts, color(0, 0, 0), &test_app);
+    sc.add_figure(invalid_b);
+
+    REQUIRE_THROWS_AS(invalid_b->evaluate(0.5), std::logic_error);
+    REQUIRE_THROWS_AS(invalid_b->subdivide(0.5), std::logic_error);
   }
 
   // Cleanup

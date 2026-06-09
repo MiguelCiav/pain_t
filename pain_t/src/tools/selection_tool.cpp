@@ -10,6 +10,7 @@
 #include "commands/increase_degree_command.h"
 #include "commands/move_figure_command.h"
 #include "commands/deform_figure_command.h"
+#include "commands/subdivide_bezier_command.h"
 #include <imgui.h>
 #include <string>
 
@@ -208,6 +209,23 @@ void selection_tool::draw_preview() {
     draw_selection_cross(selected);
     draw_bezier_guidelines(selected);
     draw_control_points(selected);
+
+    if (selected->get_type_tag() == "bezier") {
+      bezier *b = static_cast<bezier *>(selected);
+      point t_pos = b->evaluate(subdivision_t);
+      int t_x = static_cast<int>(std::round(t_pos.x));
+      int t_y = static_cast<int>(std::round(t_pos.y));
+      color red(1.0f, 0.0f, 0.0f);
+      color black(0.0f, 0.0f, 0.0f);
+      int size = 3; // 7x7 square
+      for (int y = t_y - size; y <= t_y + size; y++) {
+        rasterizer::line::draw_horizontal(engine, t_x - size, t_x + size, y, red);
+      }
+      rasterizer::line::draw_horizontal(engine, t_x - size, t_x + size, t_y - size, black);
+      rasterizer::line::draw_horizontal(engine, t_x - size, t_x + size, t_y + size, black);
+      rasterizer::line::draw_vertical(engine, t_y - size, t_y + size, t_x - size, black);
+      rasterizer::line::draw_vertical(engine, t_y - size, t_y + size, t_x + size, black);
+    }
   }
 }
 
@@ -224,10 +242,24 @@ void selection_tool::draw_settings() {
     ImGui::Text("Bezier Options");
 
     bezier *b = static_cast<bezier *>(selected);
-    if (ImGui::Button("Increase degree")) {
+    if (ImGui::Button("Increase degree", ImVec2(-1.0f, 0.0f))) {
       if (b->get_control_points().size() >= 3) {
         application->get_scene().execute(new increase_degree_command(b, &application->get_scene()));
       }
+    }
+
+    ImGui::Text("Subdivision t");
+    ImGui::SetNextItemWidth(-1.0f);
+    ImGui::SliderFloat("##SubdivisionT", &subdivision_t, 0.0f, 1.0f, "t = %.2f");
+
+    if (ImGui::Button("Subdivide Bezier", ImVec2(-1.0f, 0.0f))) {
+      auto split_points = b->subdivide(subdivision_t);
+      bezier *left = new bezier(split_points.first, b->get_border_color(), engine);
+      bezier *right = new bezier(split_points.second, b->get_border_color(), engine);
+      left->set_bordered(b->is_bordered());
+      right->set_bordered(b->is_bordered());
+
+      application->get_scene().execute(new subdivide_bezier_command(&application->get_scene(), b, left, right));
     }
   }
 

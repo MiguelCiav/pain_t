@@ -36,6 +36,7 @@ void app::update(float deltaTime) {
   main_scene.draw_all(this);
   if (show_quad_tree) {
     main_scene.draw_quad_tree(this);
+    main_scene.update_animation(deltaTime);
   }
   if (active_tool) {
     active_tool->draw_preview();

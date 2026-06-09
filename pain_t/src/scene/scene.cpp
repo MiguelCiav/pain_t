@@ -1,5 +1,6 @@
 #include "scene.h"
 #include "../engine/engine_2d.h"
+#include "../figures/rasterizer.h"
 #include "commands/command_history.h"
 #include "commands/i_command.h"
 #include "quad_tree.h"
@@ -126,13 +127,21 @@ figure *scene::query(point click) const {
     throw std::logic_error("Can't make scene queries without a tree");
   }
 
+  query_anim_nodes.clear();
+  query_anim_index = -1;
+  query_anim_timer = 0.0f;
+
   bounding_box click_box(
       point(click.x - CLICK_TOLERANCE, click.y - CLICK_TOLERANCE),
       point(click.x + CLICK_TOLERANCE, click.y - CLICK_TOLERANCE),
       point(click.x + CLICK_TOLERANCE, click.y + CLICK_TOLERANCE),
       point(click.x - CLICK_TOLERANCE, click.y + CLICK_TOLERANCE));
 
-  std::unordered_set<figure *> candidates = tree->query(click_box);
+  std::unordered_set<figure *> candidates = tree->query(click_box, nullptr, &query_anim_nodes);
+
+  if (!query_anim_nodes.empty()) {
+    query_anim_index = 0;
+  }
 
   if (candidates.empty()) {
     return nullptr;
@@ -156,6 +165,29 @@ void scene::draw_all(engine_2d *engine) const {
 void scene::draw_quad_tree(engine_2d *engine) const {
   if (tree) {
     tree->draw(engine);
+  }
+
+  if (query_anim_index >= 0) {
+    color red_color(1.0f, 0.0f, 0.0f);
+    for (int i = 0; i <= query_anim_index && i < static_cast<int>(query_anim_nodes.size()); ++i) {
+      std::vector<point> pts = query_anim_nodes[i].get_bounding_box();
+      if (pts.size() >= 4) {
+        rasterizer::line::draw(engine, pts[0], pts[1], red_color);
+        rasterizer::line::draw(engine, pts[1], pts[2], red_color);
+        rasterizer::line::draw(engine, pts[2], pts[3], red_color);
+        rasterizer::line::draw(engine, pts[3], pts[0], red_color);
+      }
+    }
+  }
+}
+
+void scene::update_animation(float deltaTime) const {
+  if (query_anim_index >= 0 && query_anim_index < static_cast<int>(query_anim_nodes.size())) {
+    query_anim_timer += deltaTime;
+    if (query_anim_timer >= 0.15f) {
+      query_anim_timer = 0.0f;
+      query_anim_index++;
+    }
   }
 }
 
